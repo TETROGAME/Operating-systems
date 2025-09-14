@@ -4,47 +4,47 @@
 #include <string>
 #include <vector>
 #include "employee.h"
-
-void PrintBinaryFile(std::string filename) {
-    std::ifstream fin(filename, std::ios::binary);
+using std::cout, std::cin, std::string, std::vector, std::ifstream;
+void PrintBinaryFile(string filename) {
+    ifstream fin(filename, std::ios::binary);
     if (!fin.is_open()) {
         std::cerr << "Can't open \"" << filename << "\" file\n";
         return;
     }
-    std::cout << "File content:\n";
+    cout << "File content:\n";
     employee emp;
     while (fin.read(reinterpret_cast<char*>(&emp), sizeof(emp))) {
-        std::cout << emp.num << " " << emp.name << " " << emp.hours << std::endl;
+        cout << emp.num << " " << emp.name << " " << emp.hours << std::endl;
     }
     fin.close();
 }
 
-void PrintReport(std::string filename) {
-    std::ifstream fin(filename);
+void PrintReport(string filename) {
+    ifstream fin(filename);
     if (!fin) {
         std::cerr << "Can't open report file.\n";
         return;
     }
-    std::string line;
+    string line;
     while (std::getline(fin, line)) {
-        std::cout << line << std::endl;
+        cout << line << std::endl;
     }
     fin.close();
 }
 
 int main() {
-    std::string creator_file, report_file;
+    string creator_file, report_file;
     int record_count;
     double pay_per_hour;
 
-    std::cout << "Enter binary file name: ";
-    std::cin >> creator_file;
-    std::cout << "Enter number of records: ";
-    std::cin >> record_count;
+    cout << "Enter binary file name: ";
+    cin >> creator_file;
+    cout << "Enter number of records: ";
+    cin >> record_count;
 
     //Creator.exe
-    std::string creatorCommand = std::string("Creator.exe") + ' ' + creator_file + ' ' + std::to_string(record_count);
-    std::vector<char> cmd1(creatorCommand.begin(), creatorCommand.end());
+    string creatorCommand = string("Creator.exe") + ' ' + creator_file + ' ' + std::to_string(record_count);
+    vector<char> cmd1(creatorCommand.begin(), creatorCommand.end());
     cmd1.push_back('\0');
 
     STARTUPINFOA si_creator;
@@ -64,14 +64,14 @@ int main() {
     PrintBinaryFile(creator_file);
 
 
-    std::cout << "Enter report file name: ";
-    std::cin >> report_file;
-    std::cout << "Enter pay per hour: ";
-    std::cin >> pay_per_hour;
+    cout << "Enter report file name: ";
+    cin >> report_file;
+    cout << "Enter pay per hour: ";
+    cin >> pay_per_hour;
 
     //Reporter.exe
-    std::string reporterCommand = std::string("Reporter.exe") + ' ' + creator_file + ' ' + report_file + ' ' + std::to_string(pay_per_hour);
-    std::vector<char> cmd2(reporterCommand.begin(), reporterCommand.end());
+    string reporterCommand = string("Reporter.exe") + ' ' + creator_file + ' ' + report_file + ' ' + std::to_string(pay_per_hour);
+    vector<char> cmd2(reporterCommand.begin(), reporterCommand.end());
     cmd1.push_back('\0');
     STARTUPINFOA si_reporter;
     PROCESS_INFORMATION pi_reporter;
