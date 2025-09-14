@@ -1,35 +1,33 @@
 ﻿#include <windows.h>
 #include <iostream>
-#include <fstream>
 #include <string>
 #include <vector>
 #include "employee.h"
-using std::cout, std::cin, std::string, std::vector, std::ifstream;
-void PrintBinaryFile(string filename) {
-    ifstream fin(filename, std::ios::binary);
-    if (!fin.is_open()) {
-        std::cerr << "Can't open \"" << filename << "\" file\n";
+#include "employee_io.h"
+
+using std::cout, std::cin, std::string, std::vector;
+
+void PrintBinaryFile(const string& filename) {
+    vector<employee> employees = ReadEmployeesFromBinary(filename);
+    if (employees.empty()) {
+        std::cerr << "Can't open \"" << filename << "\" file or file is empty\n";
         return;
     }
     cout << "File content:\n";
-    employee emp;
-    while (fin.read(reinterpret_cast<char*>(&emp), sizeof(emp))) {
+    for (const auto& emp : employees) {
         cout << emp.num << " " << emp.name << " " << emp.hours << std::endl;
     }
-    fin.close();
 }
 
-void PrintReport(string filename) {
-    ifstream fin(filename);
-    if (!fin) {
-        std::cerr << "Can't open report file.\n";
+void PrintReport(const string& filename) {
+    vector<string> lines = ReadReportFile(filename);
+    if (lines.empty()) {
+        std::cerr << "Can't open report file or file is empty.\n";
         return;
     }
-    string line;
-    while (std::getline(fin, line)) {
+    for (const auto& line : lines) {
         cout << line << std::endl;
     }
-    fin.close();
 }
 
 int main() {
@@ -42,7 +40,7 @@ int main() {
     cout << "Enter number of records: ";
     cin >> record_count;
 
-    //Creator.exe
+    // Creator.exe
     string creatorCommand = string("Creator.exe") + ' ' + creator_file + ' ' + std::to_string(record_count);
     vector<char> cmd1(creatorCommand.begin(), creatorCommand.end());
     cmd1.push_back('\0');
@@ -63,16 +61,15 @@ int main() {
 
     PrintBinaryFile(creator_file);
 
-
     cout << "Enter report file name: ";
     cin >> report_file;
     cout << "Enter pay per hour: ";
     cin >> pay_per_hour;
 
-    //Reporter.exe
+    // Reporter.exe
     string reporterCommand = string("Reporter.exe") + ' ' + creator_file + ' ' + report_file + ' ' + std::to_string(pay_per_hour);
     vector<char> cmd2(reporterCommand.begin(), reporterCommand.end());
-    cmd1.push_back('\0');
+    cmd2.push_back('\0');
     STARTUPINFOA si_reporter;
     PROCESS_INFORMATION pi_reporter;
     ZeroMemory(&si_reporter, sizeof(si_reporter));
