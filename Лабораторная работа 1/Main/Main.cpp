@@ -5,7 +5,10 @@
 #include "employee.h"
 #include "employee_io.h"
 
-using std::cout, std::cin, std::string, std::vector;
+using std::cout;
+using std::cin;
+using std::string;
+using std::vector;
 
 void PrintBinaryFile(const string& filename) {
     vector<employee> employees = ReadEmployeesFromBinary(filename);

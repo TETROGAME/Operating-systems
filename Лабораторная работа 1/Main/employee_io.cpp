@@ -1,6 +1,9 @@
 #include "employee_io.h"
 #include <fstream>
-using std::ifstream, std::ofstream, std::string, std::vector;
+using std::ifstream;
+using std::ofstream;
+using std::string;
+using std::vector;
 
 vector<employee> ReadEmployeesFromBinary(const string& filename) {
     vector<employee> result;

@@ -2,7 +2,8 @@
 #include <string>
 #include <vector>
 #include "employee.h"
-using std::string, std::vector;
+using std::string;
+using std::vector;
 
 vector<employee> ReadEmployeesFromBinary(const string& filename);
 bool WriteEmployeesToBinary(const string& filename, const vector<employee>& employees);
