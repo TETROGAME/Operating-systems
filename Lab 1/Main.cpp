@@ -12,7 +12,7 @@ using std::vector;
 void PrintBinaryFile(const string& filename) {
     vector<employee> employees = ReadEmployeesFromBinary(filename);
     if (employees.empty()) {
-        std::cerr << "Can't open \"" << filename << "\" file or file is empty\n";
+        std::cerr << '\"' << filename << "\" file is empty\n";
         return;
     }
     cout << "File content:\n";
