@@ -74,3 +74,36 @@ TEST(ReporterTest, ReturnsErrorWhenBinaryFileMissing) {
 
     remove(test_report);
 }
+
+TEST(EmployeeTest, WriteEmployeesToBinaryReturnsFalseOnError) {
+    vector<employee> employees = { {1, "Test", 10.0} };
+    string bad_path = "/invalid_path/test_employees.bin";
+    EXPECT_FALSE(WriteEmployeesToBinary(bad_path, employees));
+}
+
+TEST(EmployeeTest, ReadEmployeesFromBinaryReturnsEmptyOnMissingFile) {
+    string missing_file = "nonexistent.bin";
+    vector<employee> result = ReadEmployeesFromBinary(missing_file);
+    EXPECT_TRUE(result.empty());
+}
+
+TEST(EmployeeTest, ReadReportFileReadsLinesCorrectly) {
+    const string report_file = "test_report.txt";
+    ofstream fout(report_file);
+    fout << "Line one\n";
+    fout << "Line two\n";
+    fout.close();
+
+    vector<string> lines = ReadReportFile(report_file);
+    ASSERT_EQ(lines.size(), 2);
+    EXPECT_EQ(lines[0], "Line one");
+    EXPECT_EQ(lines[1], "Line two");
+
+    remove(report_file.c_str());
+}
+
+TEST(EmployeeTest, ReadReportFileReturnsEmptyOnMissingFile) {
+    string missing_file = "nonexistent_report.txt";
+    vector<string> lines = ReadReportFile(missing_file);
+    EXPECT_TRUE(lines.empty());
+}
