@@ -6,6 +6,13 @@ using std::ofstream;
 using std::string;
 using std::vector;
 
+std::ostream & operator<<(std::ostream &os, const employee &e) {
+    os.write(reinterpret_cast<const char*>(&e.num), sizeof(e.num));
+    os.write(e.name, sizeof(e.name)); // Для массива char преобразование не нужно
+    os.write(reinterpret_cast<const char*>(&e.hours), sizeof(e.hours));
+    return os;
+}
+
 vector<employee> ReadEmployeesFromBinary(const string& filename) {
     vector<employee> result;
     ifstream fin(filename, std::ios::binary);
