@@ -18,9 +18,9 @@ int main(int argc, char* argv[]) {
     }
 
     for (int i = 0; i < n; ++i) {
-        employee emp;
+        employee emp{};
         std::cout << "Enter num, name, hours for employee number" << (i + 1) << ":\n";
-        std::cin >> emp.num >> emp.name >> emp.hours;
+        fout << emp;
         fout.write(reinterpret_cast<char*>(&emp), sizeof(emp));
     }
     fout.close();
