@@ -32,17 +32,7 @@ void PrintReport(const string& filename) {
     }
 }
 
-int main() {
-    string creator_file, report_file;
-    int record_count;
-    double pay_per_hour;
-
-    cout << "Enter binary file name: ";
-    cin >> creator_file;
-    cout << "Enter number of records: ";
-    cin >> record_count;
-
-    // Creator.exe
+void launchCreator(const string& creator_file, const int& record_count) {
     string creatorCommand = string("Creator.exe") + ' ' + creator_file + ' ' + std::to_string(record_count);
     vector<char> cmd1(creatorCommand.begin(), creatorCommand.end());
     cmd1.push_back('\0');
@@ -55,20 +45,16 @@ int main() {
 
     if (!CreateProcessA(NULL, cmd1.data(), NULL, NULL, FALSE, 0, NULL, NULL, &si_creator, &pi_creator)) {
         std::cerr << "Failed to start Creator.exe. Error: " << GetLastError() << "\n";
-        return 1;
+        return;
     }
     WaitForSingleObject(pi_creator.hProcess, INFINITE);
     CloseHandle(pi_creator.hProcess);
     CloseHandle(pi_creator.hThread);
 
     PrintBinaryFile(creator_file);
+}
 
-    cout << "Enter report file name: ";
-    cin >> report_file;
-    cout << "Enter pay per hour: ";
-    cin >> pay_per_hour;
-
-    // Reporter.exe
+void launchReporter(const string& creator_file, const string& report_file, const double& pay_per_hour) {
     string reporterCommand = string("Reporter.exe") + ' ' + creator_file + ' ' + report_file + ' ' + std::to_string(pay_per_hour);
     vector<char> cmd2(reporterCommand.begin(), reporterCommand.end());
     cmd2.push_back('\0');
@@ -80,13 +66,32 @@ int main() {
 
     if (!CreateProcessA(NULL, cmd2.data(), NULL, NULL, FALSE, 0, NULL, NULL, &si_reporter, &pi_reporter)) {
         std::cerr << "Failed to start Reporter.exe. Error: " << GetLastError() << "\n";
-        return 1;
+        return;
     }
     WaitForSingleObject(pi_reporter.hProcess, INFINITE);
     CloseHandle(pi_reporter.hProcess);
     CloseHandle(pi_reporter.hThread);
 
     PrintReport(report_file);
+}
+
+int main() {
+    string creator_file, report_file;
+    int record_count;
+    double pay_per_hour;
+    //Creator.exe
+    cout << "Enter binary file name: ";
+    cin >> creator_file;
+    cout << "Enter number of records: ";
+    cin >> record_count;
+    launchCreator(creator_file, record_count);
+
+    // Reporter.exe
+    cout << "Enter report file name: ";
+    cin >> report_file;
+    cout << "Enter pay per hour: ";
+    cin >> pay_per_hour;
+    launchReporter(creator_file, report_file, pay_per_hour);
 
     return 0;
 }
