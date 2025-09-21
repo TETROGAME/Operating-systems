@@ -16,11 +16,17 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
-add_executable(Main Main.cpp employee.cpp)
-add_executable(Creator Creator.cpp employee.cpp)
-add_executable(Reporter Reporter.cpp employee.cpp)
-add_executable(my_test test.cpp employee.cpp)
-target_link_libraries(my_test gtest_main)
+add_library(employee_lib employee.cpp)
+
+add_executable(Main Main.cpp)
+add_executable(Creator Creator.cpp)
+add_executable(Reporter Reporter.cpp)
+add_executable(my_test test.cpp)
+
+target_link_libraries(Main PRIVATE employee_lib)
+target_link_libraries(Creator PRIVATE employee_lib)
+target_link_libraries(Reporter PRIVATE employee_lib)
+target_link_libraries(my_test PRIVATE employee_lib gtest_main)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_target_properties(Creator Reporter Main my_test PROPERTIES CXX_STANDARD 20)
