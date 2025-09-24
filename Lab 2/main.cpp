@@ -6,10 +6,6 @@ using std::cout;
 using std::cin;
 using std::vector;
 
-struct minmax {
-    int min;
-    int max;
-};
 DWORD WINAPI min_max(LPVOID lpParameter) {
     const auto array_ptr = static_cast<vector<int>*>(lpParameter);
     auto array = *array_ptr;
