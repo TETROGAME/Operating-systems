@@ -6,38 +6,45 @@ using std::cout;
 using std::cin;
 using std::vector;
 
+struct Holder {
+    vector<int> array;
+    int min_index{};
+    int max_index{};
+    int average{};
+};
+
 DWORD WINAPI min_max(LPVOID lpParameter) {
-    const auto array_ptr = static_cast<vector<int>*>(lpParameter);
-    auto array = *array_ptr;
+    const auto holder = static_cast<Holder*>(lpParameter);
     int max = INT_MIN, min = INT_MAX;
     int max_index = 0, min_index = 0;
-    for (int i = 0; i < array.size(); i++) {
-        if (array[i] > max) {
-            max = array[i];
+    for (int i = 0; i < holder->array.size(); i++) {
+        if (holder->array[i] > max) {
+            max = holder->array[i];
             max_index = i;
         }
         Sleep(7);
-        if (array[i] < min) {
-            min = array[i];
+        if (holder->array[i] < min) {
+            min = holder->array[i];
             min_index = i;
         }
         Sleep(7);
     }
     cout<<"\nMAX: " << max <<"\nMIN: " << min;
     cout<<"\nMAX index: " << max_index <<"\nMIN index: " << min_index <<"\n";
-    DWORD result = (min_index << 16) | max_index;
-    return result;
+    holder->max_index = max_index;
+    holder->min_index = min_index;
+    return 0;
 }
 DWORD WINAPI average(LPVOID lpParameter) {
-    const auto array_ptr = static_cast<vector<int>*>(lpParameter);
-    auto array = *array_ptr;
+    const auto holder = static_cast<Holder*>(lpParameter);
     int sum = 0;
-    for (int element : array) {
+    for (const int element : holder->array) {
         sum += element;
         Sleep(12);
     }
-    cout<<"\nAverage: " << sum/array.size()<<"\n";
-    return sum/array.size();
+    cout<<"\nAverage: " << sum / holder->array.size()<<"\n";
+    holder->average = sum / static_cast<int>(holder->array.size());
+    return 0;
 }
 
 vector<int> getArray() {
@@ -46,7 +53,7 @@ vector<int> getArray() {
     cin >> n;
 
     cout << "Enter array elements: ";
-    vector<int> arr(n, 0);
+    vector<int> arr(n);
     for (int i = 0; i < n; i++) {
         cin >> arr[i];
     }
@@ -54,29 +61,20 @@ vector<int> getArray() {
 }
 
 int main() {
-    DWORD exit_code;
     auto array = getArray();
-
-    HANDLE h_min_max = CreateThread(NULL, 0, min_max, &array, 0, NULL);
-    if (h_min_max == NULL) { return GetLastError(); }
+    Holder holder = {array, -1, -1, 0};
+    HANDLE h_min_max = CreateThread(NULL, 0, min_max, &holder, 0, NULL);
+    if (h_min_max == NULL) { return static_cast<int>(GetLastError()); }
     WaitForSingleObject(h_min_max, INFINITE);
-    GetExitCodeThread(h_min_max, &exit_code);
     CloseHandle(h_min_max);
 
-    DWORD answer = exit_code;
-    int max_index = static_cast<int>(answer & 0xFFFF);
-    int min_index = static_cast<int>((answer >> 16) & 0xFFFF);
-    cout << "\nMinimum: " << array[min_index] << "\nMaximum: " << array[max_index];
-
-    HANDLE h_average = CreateThread(NULL, 0, average, &array, 0, NULL);
+    HANDLE h_average = CreateThread(NULL, 0, average, &holder, 0, NULL);
     if (h_average == NULL) { return GetLastError(); }
     WaitForSingleObject(h_average, INFINITE);
-    GetExitCodeThread(h_average, &exit_code);
-    int avg = exit_code;
     CloseHandle(h_average);
 
-    array[min_index] = avg;
-    array[max_index] = avg;
+    array[holder.min_index] = holder.average;
+    array[holder.max_index] = holder.average;
     cout<<'\n';
     for (const int i : array) {
         cout << i << " ";
