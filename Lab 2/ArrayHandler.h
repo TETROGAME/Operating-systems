@@ -8,7 +8,7 @@ struct Holder {
     vector<int> array;
     int min_index{};
     int max_index{};
-    int average{};
+    double average{};
 };
 class ArrayHandler {
 public:

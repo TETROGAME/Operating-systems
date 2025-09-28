@@ -43,12 +43,13 @@ DWORD WINAPI ArrayHandler::findMinMax(LPVOID lpParameter) {
 }
 DWORD WINAPI ArrayHandler::findAverage(LPVOID lpParameter) {
     const auto holder = static_cast<Holder*>(lpParameter);
-    int sum = 0;
+    double sum = 0;
     for (const int element : holder->array) {
         sum += element;
         Sleep(12);
     }
 
+    cout<<"DEBUG: "<< sum << ' ';
     holder->average = sum / static_cast<int>(holder->array.size());
     return 0;
 }
