@@ -17,7 +17,14 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
+add_executable(Lab_2 main.cpp
+        ArrayHandler.cpp
+        ArrayHandler.h)
+add_executable(Test test.cpp
+        ArrayHandler.cpp
+        ArrayHandler.h)
 
-#add_test(NAME MyTest COMMAND my_test)
+target_link_libraries(Test PRIVATE gtest_main)
 
-add_executable(Lab_2 main.cpp)
+add_test(NAME MyTest COMMAND Test)
+
