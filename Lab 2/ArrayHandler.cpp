@@ -10,7 +10,10 @@ vector<int> ArrayHandler::getArray() {
     cout << "Input array size: ";
     int n;
     cin >> n;
-
+    if (n <= 0) {
+        cout << "Invalid input!\n";
+        exit(0);
+    }
     cout << "Enter array elements: ";
     vector<int> arr(n);
     for (int i = 0; i < n; i++) {
@@ -21,7 +24,7 @@ vector<int> ArrayHandler::getArray() {
 DWORD WINAPI ArrayHandler::findMinMax(LPVOID lpParameter) {
     const auto holder = static_cast<Holder*>(lpParameter);
     int max = INT_MIN, min = INT_MAX;
-    int max_index = 0, min_index = 0;
+    int max_index = -1, min_index = -1;
     for (int i = 0; i < holder->array.size(); i++) {
         if (holder->array[i] > max) {
             max = holder->array[i];
