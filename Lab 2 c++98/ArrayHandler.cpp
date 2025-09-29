@@ -30,6 +30,12 @@ vector<int> ArrayHandler::getArray() {
     }
     return arr;
 }
+
+void ArrayHandler::setMinMaxToAverage(Holder &holder) {
+    holder.array[holder.min_index] = holder.average;
+    holder.array[holder.max_index] = holder.average;
+}
+
 DWORD WINAPI ArrayHandler::findMinMax(LPVOID lpParameter) {
     Holder* holder = static_cast<Holder*>(lpParameter);
     if (holder->array.size() == 0) {
