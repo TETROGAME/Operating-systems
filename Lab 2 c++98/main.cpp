@@ -10,7 +10,7 @@ using std::vector;
 
 
 int main() {
-    Holder holder = { ArrayHandler::getArray(), -1, -1, 0 };
+    Holder holder (ArrayHandler::getArray(), -1, -1, 0 );
     HANDLE h_min_max = CreateThread(NULL, 0, ArrayHandler::findMinMax, &holder, 0, NULL);
     if (h_min_max == NULL) { return static_cast<int>(GetLastError()); }
     WaitForSingleObject(h_min_max, INFINITE);
