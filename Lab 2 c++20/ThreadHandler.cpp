@@ -1,5 +1,4 @@
 #include "ThreadHandler.h"
-#include <iostream>
 #include <thread>
 using std::thread;
 
