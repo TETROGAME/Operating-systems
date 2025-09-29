@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.30)
-project(Lab_2)
+project(Lab_2_c__98)
 
 set(CMAKE_CXX_STANDARD 98)
 
@@ -17,7 +17,7 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
-add_executable(Lab_2 main.cpp
+add_executable(Lab_2_c__98 main.cpp
         ArrayHandler.cpp
         ArrayHandler.h)
 add_executable(Test test.cpp
