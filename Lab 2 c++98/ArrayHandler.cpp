@@ -5,6 +5,8 @@
 using std::vector;
 using std::cin;
 using std::cout;
+static const int findMinMaxSleepTime = 7;
+static const int findAverageSleepTime = 12;
 
 vector<int> ArrayHandler::getArray() {
     cout << "Input array size: ";
@@ -33,12 +35,12 @@ DWORD WINAPI ArrayHandler::findMinMax(LPVOID lpParameter) {
             max = holder->array[i];
             max_index = i;
         }
-        Sleep(7);
+        Sleep(findMinMaxSleepTime);
         if (holder->array[i] < min) {
             min = holder->array[i];
             min_index = i;
         }
-        Sleep(7);
+        Sleep(findMinMaxSleepTime);
     }
     holder->max_index = max_index;
     holder->min_index = min_index;
@@ -52,7 +54,7 @@ DWORD WINAPI ArrayHandler::findAverage(LPVOID lpParameter) {
     double sum = 0;
     for (const int element : holder->array) {
         sum += element;
-        Sleep(12);
+        Sleep(findAverageSleepTime);
     }
     holder->average = sum / static_cast<int>(holder->array.size());
     return 0;
