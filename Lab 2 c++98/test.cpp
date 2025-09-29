@@ -1,5 +1,6 @@
 //Arrange - Act - Assert
 #include "ArrayHandler.h"
+#include "ThreadHandler.h"
 #include <gtest/gtest.h>
 #include <sstream>
 using std::stringstream;
@@ -70,4 +71,40 @@ TEST(FindAverageTest, EmptyArray) {
 
     //Assert
     ASSERT_EQ(holder.average, 0);
+}
+
+TEST(Lab2Test, EndToEnd) {
+    //Arrange
+    std::istringstream input("5\n7 2 9 4 6\n");
+    std::ostringstream output;
+    auto* origCinBuf = std::cin.rdbuf();
+    auto* origCoutBuf = std::cout.rdbuf();
+    std::cin.rdbuf(input.rdbuf());
+    std::cout.rdbuf(output.rdbuf());
+
+    //Act
+    Holder holder (ArrayHandler::getArray(), -1, -1, 0);
+
+    ThreadHandler::findMinMaxThread(holder);
+    std::cout << "\nMAX: " << holder.array[holder.max_index]
+              << "\nMIN: " << holder.array[holder.min_index];
+    std::cout << "\nMAX index: " << holder.max_index
+              << "\nMIN index: " << holder.min_index << "\n";
+
+    ThreadHandler::findAverageThread(holder);
+    std::cout << "\nAverage: " << holder.average << "\n";
+
+    ArrayHandler::setMinMaxToAverage(holder);
+    for (const int i : holder.array) { std::cout << i << " "; }
+
+    std::cin.rdbuf(origCinBuf);
+    std::cout.rdbuf(origCoutBuf);
+
+    //Assert
+    std::string outStr = output.str();
+    EXPECT_NE(outStr.find("MAX: 9"), std::string::npos);
+    EXPECT_NE(outStr.find("MIN: 2"), std::string::npos);
+    EXPECT_NE(outStr.find("MAX index: 2"), std::string::npos);
+    EXPECT_NE(outStr.find("MIN index: 1"), std::string::npos);
+    EXPECT_NE(outStr.find("Average:"), std::string::npos);
 }
