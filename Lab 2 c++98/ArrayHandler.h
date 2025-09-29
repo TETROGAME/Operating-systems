@@ -17,7 +17,6 @@ class ArrayHandler {
 public:
     static vector<int> getArray();
     static void setMinMaxToAverage(Holder& holder);
-
     static DWORD WINAPI findMinMax(LPVOID lpParameter);
     static DWORD WINAPI findAverage(LPVOID lpParameter);
 };
