@@ -38,7 +38,7 @@ void ArrayHandler::setMinMaxToAverage(Holder &holder) {
 
 DWORD WINAPI ArrayHandler::findMinMax(LPVOID lpParameter) {
     Holder* holder = static_cast<Holder*>(lpParameter);
-    if (holder->array.size() == 0) {
+    if (holder->array.empty()) {
         return 0;
     }
     int max = INT_MIN, min = INT_MAX;
@@ -61,7 +61,7 @@ DWORD WINAPI ArrayHandler::findMinMax(LPVOID lpParameter) {
 }
 DWORD WINAPI ArrayHandler::findAverage(LPVOID lpParameter) {
     Holder* holder = static_cast<Holder*>(lpParameter);
-    if (holder->array.size() == 0) {
+    if (holder->array.empty()) {
         return 0;
     }
     double sum = 0;
