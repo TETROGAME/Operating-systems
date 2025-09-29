@@ -6,9 +6,11 @@ using std::vector;
 
 struct Holder {
     vector<int> array;
-    int min_index{};
-    int max_index{};
-    double average{};
+    int min_index;
+    int max_index;
+    double average;
+    Holder();
+    Holder(const vector<int>& array, int min_index, int max_index, double average);
 };
 class ArrayHandler {
 public:
