@@ -19,10 +19,14 @@ enable_testing()
 
 add_executable(Lab_2_c__20 main.cpp
         ArrayHandler.cpp
-        ArrayHandler.h)
+        ArrayHandler.h
+        ThreadHandler.cpp
+        ThreadHandler.h)
 add_executable(Test test.cpp
         ArrayHandler.cpp
-        ArrayHandler.h)
+        ArrayHandler.h
+        ThreadHandler.cpp
+        ThreadHandler.h)
 
 target_link_libraries(Test PRIVATE gtest_main)
 
