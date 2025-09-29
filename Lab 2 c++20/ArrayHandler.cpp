@@ -5,6 +5,16 @@
 using std::vector;
 using std::cin;
 using std::cout;
+static const int findMinMaxSleepTime = 7;
+static const int findAverageSleepTime = 12;
+
+Holder::Holder() : min_index(-1), max_index(-1), average(0) {}
+Holder::Holder(const vector<int>& array, int min_index, int max_index, double average) {
+    this->array = array;
+    this->min_index = min_index;
+    this->max_index = max_index;
+    this->average = average;
+}
 
 vector<int> ArrayHandler::getArray() {
     cout << "Input array size: ";
@@ -21,39 +31,37 @@ vector<int> ArrayHandler::getArray() {
     }
     return arr;
 }
-DWORD WINAPI ArrayHandler::findMinMax(LPVOID lpParameter) {
-    const auto holder = static_cast<Holder*>(lpParameter);
-    if (holder->array.size() == 0) {
-        return 0;
-    }
+
+void ArrayHandler::setMinMaxToAverage(Holder &holder) {
+    holder.array[holder.min_index] = holder.average;
+    holder.array[holder.max_index] = holder.average;
+}
+
+void ArrayHandler::findMinMax(Holder& holder) {
+    if (holder.array.empty()) { return; }
     int max = INT_MIN, min = INT_MAX;
     int max_index = -1, min_index = -1;
-    for (int i = 0; i < holder->array.size(); i++) {
-        if (holder->array[i] > max) {
-            max = holder->array[i];
+    for (int i = 0; i < holder.array.size(); i++) {
+        if (holder.array[i] > max) {
+            max = holder.array[i];
             max_index = i;
         }
-        Sleep(7);
-        if (holder->array[i] < min) {
-            min = holder->array[i];
+        Sleep(findMinMaxSleepTime);
+        if (holder.array[i] < min) {
+            min = holder.array[i];
             min_index = i;
         }
-        Sleep(7);
+        Sleep(findMinMaxSleepTime);
     }
-    holder->max_index = max_index;
-    holder->min_index = min_index;
-    return 0;
+    holder.max_index = max_index;
+    holder.min_index = min_index;
 }
-DWORD WINAPI ArrayHandler::findAverage(LPVOID lpParameter) {
-    const auto holder = static_cast<Holder*>(lpParameter);
-    if (holder->array.size() == 0) {
-        return 0;
-    }
+void ArrayHandler::findAverage(Holder& holder) {
+    if (holder.array.empty()) { return; }
     double sum = 0;
-    for (const int element : holder->array) {
+    for (const int element : holder.array) {
         sum += element;
-        Sleep(12);
+        Sleep(findAverageSleepTime);
     }
-    holder->average = sum / static_cast<int>(holder->array.size());
-    return 0;
+    holder.average = sum / static_cast<int>(holder.array.size());
 }
