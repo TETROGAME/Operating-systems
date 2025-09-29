@@ -15,7 +15,7 @@ struct Holder {
 class ArrayHandler {
 public:
     static vector<int> getArray();
-    static void setMinMaxToAverage(Holder &holder);
+    static void setMinMaxToAverage(Holder& holder);
     static void findMinMax(Holder& holder);
     static void findAverage(Holder& holder);
 };
