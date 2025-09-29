@@ -1,5 +1,6 @@
 //Arrange - Act - Assert
 #include "ArrayHandler.h"
+#include "ThreadHandler.h"
 #include <gtest/gtest.h>
 #include <sstream>
 using std::stringstream;
@@ -11,7 +12,7 @@ TEST(FindMinMaxTest, NormalBehaviour) {
     Holder holder({1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, -1, -1, 0);
 
     //Act
-    ArrayHandler::findMinMax(&holder);
+    ArrayHandler::findMinMax(holder);
 
     //Assert
     ASSERT_EQ(holder.min_index, 0);
@@ -22,7 +23,7 @@ TEST(FindMinMaxTest, OneElement) {
     Holder holder({1}, -1, -1, 0);
 
     //Act
-    ArrayHandler::findMinMax(&holder);
+    ArrayHandler::findMinMax(holder);
 
     //Assert
     ASSERT_EQ(holder.min_index, 0);
@@ -33,7 +34,7 @@ TEST(FindMinMaxTest, EmptyArray) {
     Holder holder({}, -1, -1, 0);
 
     //Act
-    ArrayHandler::findMinMax(&holder);
+    ArrayHandler::findMinMax(holder);
 
     //Assert
     ASSERT_EQ(holder.min_index, -1);
@@ -46,7 +47,7 @@ TEST(FindAverageTest, NormalBehaviour) {
     Holder holder({1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, -1, -1, 0);
 
     //Act
-    ArrayHandler::findAverage(&holder);
+    ArrayHandler::findAverage(holder);
 
     //Assert
     ASSERT_EQ(holder.average, 5.5);
@@ -56,7 +57,7 @@ TEST(FindAverageTest, OneElement) {
     Holder holder({1}, -1, -1, 0);
 
     //Act
-    ArrayHandler::findAverage(&holder);
+    ArrayHandler::findAverage(holder);
 
     //Assert
     ASSERT_EQ(holder.average, 1);
@@ -66,7 +67,7 @@ TEST(FindAverageTest, EmptyArray) {
     Holder holder({}, -1, -1, 0);
 
     //Act
-    ArrayHandler::findAverage(&holder);
+    ArrayHandler::findAverage(holder);
 
     //Assert
     ASSERT_EQ(holder.average, 0);
