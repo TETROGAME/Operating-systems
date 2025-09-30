@@ -77,8 +77,8 @@ TEST(Lab2Test, EndToEnd) {
     //Arrange
     std::istringstream input("5\n7 2 9 4 6\n");
     std::ostringstream output;
-    auto* origCinBuf = std::cin.rdbuf();
-    auto* origCoutBuf = std::cout.rdbuf();
+    std::streambuf* origCinBuf = std::cin.rdbuf();
+    std::streambuf* origCoutBuf = std::cout.rdbuf();
     std::cin.rdbuf(input.rdbuf());
     std::cout.rdbuf(output.rdbuf());
 
@@ -95,7 +95,7 @@ TEST(Lab2Test, EndToEnd) {
     std::cout << "\nAverage: " << holder.average << "\n";
 
     ArrayHandler::setMinMaxToAverage(holder);
-    for (const int i : holder.array) { std::cout << i << " "; }
+    for (int i = 0; i < holder.array.size(); i++) { std::cout << holder.array[i] << " "; }
 
     std::cin.rdbuf(origCinBuf);
     std::cout.rdbuf(origCoutBuf);
