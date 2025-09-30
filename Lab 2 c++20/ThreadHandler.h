@@ -4,13 +4,11 @@
 #include "ArrayHandler.h"
 #include <functional>
 
-class ThreadHandler {
-public:
-    static void launchFindMinMaxThread(
+namespace ThreadHandler {
+    void launchFindMinMaxThread(
         const std::function<void(Holder&)>& findMinMax, Holder &holder);
-    static void launchFindAverageThread(
+    void launchFindAverageThread(
         const std::function<void(Holder&)>& findAverage, Holder &holder);
-    ThreadHandler() = delete;
 };
 
 #endif //THREADHANDLER_H
