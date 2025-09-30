@@ -10,6 +10,7 @@ public:
         const std::function<void(Holder&)>& findMinMax, Holder &holder);
     static void launchFindAverageThread(
         const std::function<void(Holder&)>& findAverage, Holder &holder);
+    ThreadHandler() = delete;
 };
 
 #endif //THREADHANDLER_H

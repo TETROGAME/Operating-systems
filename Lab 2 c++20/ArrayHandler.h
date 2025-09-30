@@ -18,6 +18,7 @@ public:
     static void setMinMaxToAverage(Holder& holder);
     static void findMinMax(Holder& holder);
     static void findAverage(Holder& holder);
+    ArrayHandler() = delete;
 };
 
 #endif //ARRAYHANDLER_H
