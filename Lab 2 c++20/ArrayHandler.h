@@ -1,17 +1,9 @@
 #ifndef ARRAYHANDLER_H
 #define ARRAYHANDLER_H
 #include <vector>
-#include <windows.h>
+#include "Holder.h"
 using std::vector;
 
-struct Holder {
-    vector<int> array;
-    int min_index{};
-    int max_index{};
-    double average{};
-    Holder();
-    Holder(const vector<int>& array, int min_index, int max_index, double average);
-};
 class ArrayHandler {
 public:
     static vector<int> getArray();
