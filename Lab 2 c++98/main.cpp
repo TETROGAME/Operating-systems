@@ -17,6 +17,6 @@ int main() {
     cout<<"\nAverage: " << holder.average <<"\n";
 
     ArrayHandler::setMinMaxToAverage(holder);
-    for (const int i : holder.array) { cout << i << " "; }
+    for (int i = 0; i < holder.array.size(); i++) { cout << holder.array[i] << " "; }
     return 0;
 }

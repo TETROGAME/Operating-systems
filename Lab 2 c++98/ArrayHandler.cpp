@@ -65,8 +65,8 @@ DWORD WINAPI ArrayHandler::findAverage(LPVOID lpParameter) {
         return 0;
     }
     double sum = 0;
-    for (const int element : holder->array) {
-        sum += element;
+    for (int i = 0; i < holder->array.size(); i++) {
+        sum += holder->array[i];
         Sleep(findAverageSleepTime);
     }
     holder->average = sum / static_cast<int>(holder->array.size());
