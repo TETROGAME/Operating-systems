@@ -21,12 +21,16 @@ add_executable(Lab_2_c__20 main.cpp
         ArrayHandler.cpp
         ArrayHandler.h
         ThreadHandler.cpp
-        ThreadHandler.h)
+        ThreadHandler.h
+        Holder.cpp
+        Holder.h)
 add_executable(Test test.cpp
         ArrayHandler.cpp
         ArrayHandler.h
         ThreadHandler.cpp
-        ThreadHandler.h)
+        ThreadHandler.h
+        Holder.cpp
+        Holder.h)
 
 target_link_libraries(Test PRIVATE gtest_main)
 
