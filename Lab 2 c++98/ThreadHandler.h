@@ -3,12 +3,9 @@
 
 #include "ArrayHandler.h"
 
-class ThreadHandler {
-public:
-    static void findMinMaxThread(Holder& holder);
-    static void findAverageThread(Holder& holder);
-private:
-    ThreadHandler();
+namespace ThreadHandler {
+    void findMinMaxThread(Holder& holder);
+    void findAverageThread(Holder& holder);
 };
 
 #endif //THREADHANDLER_H

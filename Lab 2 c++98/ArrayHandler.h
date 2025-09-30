@@ -13,14 +13,11 @@ struct Holder {
     Holder();
     Holder(const vector<int>& array, int min_index, int max_index, double average);
 };
-class ArrayHandler {
-public:
-    static vector<int> getArray();
-    static void setMinMaxToAverage(Holder& holder);
-    static DWORD WINAPI findMinMax(LPVOID lpParameter);
-    static DWORD WINAPI findAverage(LPVOID lpParameter);
-private:
-    ArrayHandler();
+namespace ArrayHandler {
+    vector<int> getArray();
+    void setMinMaxToAverage(Holder& holder);
+    DWORD WINAPI findMinMax(LPVOID lpParameter);
+    DWORD WINAPI findAverage(LPVOID lpParameter);
 };
 
 #endif //ARRAYHANDLER_H
