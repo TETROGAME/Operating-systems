@@ -7,7 +7,8 @@ class ThreadHandler {
 public:
     static void findMinMaxThread(Holder& holder);
     static void findAverageThread(Holder& holder);
-    ThreadHandler() = delete;
+private:
+    ThreadHandler();
 };
 
 #endif //THREADHANDLER_H
