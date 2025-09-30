@@ -3,16 +3,8 @@
 
 #include <vector>
 #include <windows.h>
+#include "Holder.h"
 using std::vector;
-
-struct Holder {
-    vector<int> array;
-    int min_index;
-    int max_index;
-    double average;
-    Holder();
-    Holder(const vector<int>& array, int min_index, int max_index, double average);
-};
 namespace ArrayHandler {
     vector<int> getArray();
     void setMinMaxToAverage(Holder& holder);
