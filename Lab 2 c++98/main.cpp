@@ -5,7 +5,8 @@
 using std::cout;
 using std::cin;
 using std::vector;
-
+using namespace ThreadHandler;
+using namespace ArrayHandler;
 int main() {
     Holder holder (ArrayHandler::getArray(), -1, -1, 0 );
 
