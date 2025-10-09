@@ -1,23 +1,26 @@
-//
-// Created by User on 09.10.2025.
-//
-
 #include "Array.h"
 
-Array::Array(size_t size): data_(std::make_unique<int[]>(size)), size_(size) {}
+Array::Array(int size) {
+    if (size <= 0) {
+        throw std::invalid_argument("Size must be positive integer");
+    }
+    this->data_ = std::make_shared<int[]>(size);
+    this->size_ = size;
+}
 
-size_t Array::size() const { return size_; }
+Array::~Array() = default;
 
-int & Array::operator[](size_t index) {
+int Array::size() const { return size_; }
+
+int& Array::operator[](int index) {
     if (index >= size_) throw std::out_of_range("Index out of range");
     return data_[index];
 }
 
-const int & Array::operator[](size_t index) const {
+const int & Array::operator[](int index) const {
     if (index >= size_) throw std::out_of_range("Index out of range");
     return data_[index];
 }
 
-int * Array::data() { return data_.get(); }
-
-const int * Array::data() const { return data_.get(); }
+int* Array::data() { return data_.get(); }
+const int* Array::data() const { return data_.get(); }
