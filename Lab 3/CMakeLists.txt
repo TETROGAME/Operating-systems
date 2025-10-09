@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX)
 
 add_executable(Lab_3 main.cpp
-        ArrayHandler.cpp
-        ArrayHandler.h
         ThreadHandler.cpp
-        ThreadHandler.h)
+        ThreadHandler.h
+        Array.cpp
+        Array.h)
