@@ -10,7 +10,7 @@ class ArrayHandler {
 public:
      ArrayHandler() = delete;
 
-     static unique_ptr<int[]> getArray();
+     static unique_ptr<int[]> initializeArray();
 };
 
 
