@@ -8,4 +8,6 @@ add_executable(Lab_3 main.cpp
         ThreadHandler.cpp
         ThreadHandler.h
         Array.cpp
-        Array.h)
+        Array.h
+        Marker.cpp
+        Marker.h)
