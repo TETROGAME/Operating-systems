@@ -24,3 +24,8 @@ const int & Array::operator[](int index) const {
 
 int* Array::data() { return data_.get(); }
 const int* Array::data() const { return data_.get(); }
+
+int * Array::begin() { return data_.get(); }
+int * Array::end() { return data_.get() + size_; }
+const int * Array::begin() const { return data_.get(); }
+const int * Array::end() const { return data_.get() + size_; }

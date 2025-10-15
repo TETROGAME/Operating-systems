@@ -16,6 +16,11 @@ public:
 
     int* data();
     const int* data() const;
+
+    int* begin();
+    int* end();
+    const int* begin() const;
+    const int* end() const;
 };
 
 
