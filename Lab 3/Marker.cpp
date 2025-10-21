@@ -17,24 +17,33 @@ void Marker::run() {
 
     while (!finished_) {
         int index = rand() % array_.size();
+        bool marked = false;
 
-        std::lock_guard<std::mutex> array_lock(array_.get_mutex());
-        if (array_[index] == 0) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime));
-            array_[index] = id_;
-            std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime));
-            counter++;
-        } else {
-            std::cout << "\nThread number: " << id_ << '\n'
-                      << "Marked " << counter << " elements\n"
-                      << "Failed to mark element at " << index << " position\n";
-
-            blocked_ = true;
-
-            // 3.4.3 Wait for main's signal
-            std::unique_lock<std::mutex> lock(mtx_);
-            cv_.wait(lock, [this]{ return !blocked_ || finished_; });
+        {
+            std::lock_guard<std::mutex> array_lock(array_.get_mutex());
+            if (array_[index] == 0) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime));
+                array_[index] = id_;
+                std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime));
+                counter++;
+                marked = true;
+            }
         }
+
+        if (marked) {
+            continue;
+        }
+
+
+        std::cout << "\nThread number: " << id_ << '\n'
+                  << "Marked " << counter << " elements\n"
+                  << "Failed to mark element at " << index << " position\n";
+
+        blocked_ = true;
+
+        std::unique_lock<std::mutex> lock(mtx_);
+        cv_.wait(lock, [this]{ return !blocked_ || finished_; });
+
         if (finished_) {
             break;
         }
