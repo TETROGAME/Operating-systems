@@ -16,7 +16,7 @@
 > **Lab 1:** Complete  
 > **Lab 2 (C++98):** Complete  
 > **Lab 2 (C++20):** Complete  
-> **Lab 3:** Yet to be released  
+> **Lab 3:** Complete  
 > **Lab 4:** Yet to be released  
 > **Lab 5:** Yet to be released
 
@@ -74,6 +74,26 @@ C++20 version:
 
 ---
 
+### Lab 3: Thread Synchronization (simplified)
+
+**Objective:**  
+Create a console program where the main thread coordinates several marker threads that mark elements in a shared integer array. Demonstrate synchronization (mutexes/critical sections) and use condition variables/events to handle blocked threads and coordinated termination.
+
+**Tasks:**
+1. Read the array size from the console, allocate an integer array of that size and initialize all elements to zero.
+2. Ask the user for the number of marker threads to start, then create and start those marker threads (each gets a unique id). After creating them, signal all markers to begin work.
+3. Wait for the start signal from main before beginning work.
+4. Initialize the random number generator using srand(id) where id is the marker's ordinal number, then begin selecting indices to try to mark.
+
+**Key Files (Lab 3 implementation):**
+- `Lab 3/main.cpp`
+- `Lab 3/Array.h`, `Lab 3/Array.cpp` — shared array wrapper with mutex, iterators and move semantics.
+- `Lab 3/Marker.h`, `Lab 3/Marker.cpp` — marker thread class: run(), unblock(), finish(), bookkeeping.
+- `Lab 3/ThreadHandler.h`, `Lab 3/ThreadHandler.cpp` — main-side coordination code that launches markers and interacts with user.
+- `tests/` — GoogleTest unit and end-to-end tests exercising Array, Marker, ThreadHandler, and overall program flow.
+
+---
+
 ## Directory Structure
 
 ```
@@ -100,12 +120,22 @@ Operating-systems/
 │   ├── ThreadHandler.h
 │   └── test.cpp
 ├── Lab 3/
-│   └── ...
+│   ├── main.cpp
+│   ├── Array.h
+│   ├── Array.cpp
+│   ├── Marker.h
+│   ├── Marker.cpp
+│   ├── ThreadHandler.h
+│   ├── ThreadHandler.cpp
+│   └── tests/
+│       ├── test_array.cpp
+│       ├── test_marker.cpp
+│       ├── test_threadhandler.cpp
+│       └── test_e2e.cpp
 ├── Lab 4/
 │   └── ...
 ├── Lab 5/
 │   └── ...
 └── CMakeLists.txt
 ```
-
-
+```
