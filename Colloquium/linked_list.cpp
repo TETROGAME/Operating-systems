@@ -1,9 +1,24 @@
 #include "include/linked_list.h"
+#include <memory>
+#include <vector>
+#include <utility>
+
 using std::vector;
+
 template <typename T>
-LinkedList<T>::LinkedList(std::initializer_list<T> init) {
+Node<T>::Node(T val)
+    : v(std::move(val)), next(nullptr) {}
+
+template <typename T>
+LinkedList<T>::LinkedList()
+    : head(nullptr) {}
+
+template <typename T>
+LinkedList<T>::LinkedList(std::initializer_list<T> init)
+    : head(nullptr) {
     for (const auto& x : init) append(x);
 }
+
 template <typename T>
 void LinkedList<T>::append(const T& value) {
     auto n = std::make_shared<Node<T>>(value);
@@ -12,16 +27,19 @@ void LinkedList<T>::append(const T& value) {
     while (cur->next) cur = cur->next;
     cur->next = n;
 }
+
 template <typename T>
 vector<T> LinkedList<T>::to_vector() const {
     vector<T> out;
     for (auto cur = head; cur; cur = cur->next) out.push_back(cur->v);
     return out;
 }
+
 template <typename T>
 void LinkedList<T>::reverse_recursive() {
     head = reverse_impl(head);
 }
+
 template <typename T>
 std::shared_ptr<Node<T>> LinkedList<T>::reverse_impl(std::shared_ptr<Node<T>> node) {
     if (!node || !node->next) return node;
@@ -30,3 +48,6 @@ std::shared_ptr<Node<T>> LinkedList<T>::reverse_impl(std::shared_ptr<Node<T>> no
     node->next = nullptr;
     return new_head;
 }
+
+template class LinkedList<int>;
+template struct Node<int>;
