@@ -1,4 +1,5 @@
 #include "include/linked_list.h"
+using std::vector;
 template <typename T>
 LinkedList<T>::LinkedList(std::initializer_list<T> init) {
     for (const auto& x : init) append(x);
@@ -12,8 +13,8 @@ void LinkedList<T>::append(const T& value) {
     cur->next = n;
 }
 template <typename T>
-std::vector<T> LinkedList<T>::to_vector() const {
-    std::vector<T> out;
+vector<T> LinkedList<T>::to_vector() const {
+    vector<T> out;
     for (auto cur = head; cur; cur = cur->next) out.push_back(cur->v);
     return out;
 }
