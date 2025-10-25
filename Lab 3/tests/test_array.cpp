@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "Array.h"
+#include "../include/Array.h"
 #include <algorithm>
 
 TEST(ArrayUnit, ConstructorAndSize) {

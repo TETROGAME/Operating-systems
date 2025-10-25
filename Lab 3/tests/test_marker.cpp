@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include "Marker.h"
-#include "Array.h"
+#include "../include/Marker.h"
+#include "../include/Array.h"
 #include <thread>
 #include <chrono>
 

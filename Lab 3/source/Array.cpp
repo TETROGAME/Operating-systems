@@ -1,4 +1,4 @@
-#include "Array.h"
+#include "../include/Array.h"
 
 #include <mutex>
 #include <utility>

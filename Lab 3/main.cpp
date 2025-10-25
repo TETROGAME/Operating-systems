@@ -1,6 +1,6 @@
 #include <iostream>
-#include "Array.h"
-#include "ThreadHandler.h"
+#include "include/Array.h"
+#include "include/ThreadHandler.h"
 
 using std::cout;
 using std::cin;

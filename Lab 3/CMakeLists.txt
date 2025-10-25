@@ -19,9 +19,9 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 add_library(Lab3_lib
-        ThreadHandler.cpp
-        Array.cpp
-        Marker.cpp
+        source/ThreadHandler.cpp
+        source/Array.cpp
+        source/Marker.cpp
 )
 
 target_include_directories(Lab3_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include "ThreadHandler.h"
-#include "Array.h"
+#include "../include/ThreadHandler.h"
+#include "../include/Array.h"
 #include <sstream>
 #include <iostream>
 #include <chrono>
