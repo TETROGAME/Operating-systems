@@ -121,21 +121,23 @@ Operating-systems/
 │   └── test.cpp
 ├── Lab 3/
 │   ├── main.cpp
-│   ├── Array.h
-│   ├── Array.cpp
-│   ├── Marker.h
-│   ├── Marker.cpp
-│   ├── ThreadHandler.h
-│   ├── ThreadHandler.cpp
+|   ├── include/
+│   | ├── Array.h
+│   | ├── ThreadHandler.h
+│   | ├── Marker.h
+|   ├── source/
+│   | ├── Array.cpp
+│   | ├── ThreadHandler.cpp
+│   | ├── Marker.cpp
 │   └── tests/
 │       ├── test_array.cpp
 │       ├── test_marker.cpp
 │       ├── test_threadhandler.cpp
-│       └── test_e2e.cpp
+│       └── test_end-to-end.cpp
 ├── Lab 4/
 │   └── ...
-├── Lab 5/
-│   └── ...
-└── CMakeLists.txt
+└── Lab 5/
+    └── ...
+
 ```
 ```
