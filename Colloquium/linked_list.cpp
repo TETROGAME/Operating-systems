@@ -2,6 +2,7 @@
 #include <memory>
 #include <vector>
 #include <utility>
+#include <stdexcept>
 
 using std::vector;
 
@@ -37,6 +38,9 @@ vector<T> LinkedList<T>::to_vector() const {
 
 template <typename T>
 void LinkedList<T>::reverse_recursive() {
+    if (!head) {
+        throw std::runtime_error("reverse_recursive: cannot reverse an empty list");
+    }
     head = reverse_impl(head);
 }
 
