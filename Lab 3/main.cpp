@@ -9,20 +9,15 @@ int main() {
     cout << "Input array size: ";
     cin >> size;
     Array array;
-    try {
-        array = Array(size);
-    } catch (const std::invalid_argument& exception) {
+    try { array = Array(size); }
+    catch (const std::invalid_argument& exception) {
         cout << "Error: " << exception.what() << '\n';
         return 1;
     }
 
-    for (int& elem : array) {
-        elem = 0;
-    }
+    for (int& elem : array) { elem = 0; }
     cout << "Initial array: ";
-    for (const int& elem : array) {
-        cout << elem << ' ';
-    }
+    for (const int& elem : array) { cout << elem << ' '; }
     cout << "\n";
 
     int thread_count = 0;
