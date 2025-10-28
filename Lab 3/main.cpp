@@ -1,9 +1,8 @@
 #include <iostream>
 #include "include/Array.h"
 #include "include/ThreadHandler.h"
-
-using std::cout;
-using std::cin;
+#include "solution_namespace.h"
+using namespace solution;
 
 int main() {
     int size = 0;

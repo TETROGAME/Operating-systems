@@ -1,6 +1,8 @@
 #include "../include/ThreadHandler.h"
+#include "solution_namespace.h"
 #include <iostream>
 
+using namespace solution;
 
 ThreadHandler::ThreadHandler(int thread_count, Array &array)
     : array_(array), thread_count_(thread_count) {}
@@ -14,28 +16,28 @@ ThreadHandler::~ThreadHandler() {
 }
 
 void ThreadHandler::print_array() const {
-    std::cout << "Current array state: ";
+    cout << "Current array state: ";
     for (const int& elem : array_) {
-        std::cout << elem << ' ';
+        cout << elem << ' ';
     }
-    std::cout << std::endl;
+    cout << '\n';
 }
 
 void ThreadHandler::run() {
     for (int i = 0; i < thread_count_; i++) {
-        markers_.emplace_back(std::make_unique<Marker>(i + 1, array_, start_cv_, start_mtx_, ready_to_start_));
+        markers_.emplace_back(make_unique<Marker>(i + 1, array_, start_cv_, start_mtx_, ready_to_start_));
         threads_.emplace_back(&Marker::run, markers_[i].get());
     }
-    std::cout << "Starting all marker threads...\n";
+    cout << "Starting all marker threads...\n";
     {
-        std::lock_guard<std::mutex> lock(start_mtx_);
+        lock_guard<mutex> lock(start_mtx_);
         ready_to_start_ = true;
     }
     start_cv_.notify_all();
 
     int active_threads = thread_count_;
     while (active_threads > 0) {
-        std::cout << "Main thread is waiting for all markers to be blocked...\n";
+        cout << "Main thread is waiting for all markers to be blocked...\n";
         while (true) {
             bool all_blocked = true;
             for (int i = 0; i < thread_count_; ++i) {
@@ -48,13 +50,13 @@ void ThreadHandler::run() {
 
         }
 
-        std::cout << "\nAll threads are blocked.\n";
+        cout << "\nAll threads are blocked.\n";
         print_array();
 
         int terminate_id = -1;
         while (true) {
-            std::cout << "Enter the ID of the thread to terminate: ";
-            std::cin >> terminate_id;
+            cout << "Enter the ID of the thread to terminate: ";
+            cin >> terminate_id;
             bool valid_id = false;
             for(const auto& marker : markers_) {
                 if(marker && !marker->is_finished() && marker->get_id() == terminate_id) {
@@ -63,7 +65,7 @@ void ThreadHandler::run() {
                 }
             }
             if (valid_id) break;
-            std::cout << "Invalid ID. Please enter an active thread ID.\n";
+            cout << "Invalid ID. Please enter an active thread ID.\n";
         }
 
         Marker* marker_to_terminate = nullptr;
@@ -95,7 +97,7 @@ void ThreadHandler::run() {
                 threads_[marker_index].join();
             }
 
-            std::cout << "Thread " << terminate_id << " has finished.\n";
+            cout << "Thread " << terminate_id << " has finished.\n";
             active_threads--;
 
             print_array();
@@ -103,7 +105,7 @@ void ThreadHandler::run() {
 
         if (active_threads == 0) break;
 
-        std::cout << "Signaling remaining threads to continue...\n";
+        cout << "Signaling remaining threads to continue...\n";
         for (auto& marker : markers_) {
             if (marker && !marker->is_finished()) {
                 marker->unblock();
@@ -111,5 +113,5 @@ void ThreadHandler::run() {
         }
     }
 
-    std::cout << "All marker threads have finished. Main thread is exiting.\n";
+    cout << "All marker threads have finished. Main thread is exiting.\n";
 }

@@ -4,9 +4,10 @@
 #include <thread>
 #include <chrono>
 
-static void notify_start(std::condition_variable& cv, std::mutex& mtx, bool& ready) {
+using namespace solution;
+static void notify_start(condition_variable& cv, mutex& mtx, bool& ready) {
     {
-        std::lock_guard<std::mutex> lock(mtx);
+        lock_guard<mutex> lock(mtx);
         ready = true;
     }
     cv.notify_all();
@@ -16,13 +17,13 @@ TEST(MarkerUnit, MarksThenCleansUpOnFinish) {
     Array arr(2);
     for (int& v : arr) v = 0;
 
-    std::condition_variable start_cv;
-    std::mutex start_mtx;
+    condition_variable start_cv;
+    mutex start_mtx;
     bool ready = false;
 
     Marker m(1, arr, start_cv, start_mtx, ready);
 
-    std::thread t(&Marker::run, &m);
+    thread t(&Marker::run, &m);
 
     notify_start(start_cv, start_mtx, ready);
 

@@ -22,11 +22,14 @@ add_library(Lab3_lib
         source/ThreadHandler.cpp
         source/Array.cpp
         source/Marker.cpp
+        solution_namespace.h
 )
 
 target_include_directories(Lab3_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_executable(Lab_3 main.cpp)
+add_executable(Lab_3 main.cpp
+        solution_namespace.h
+)
 target_link_libraries(Lab_3 PRIVATE Lab3_lib)
 
 

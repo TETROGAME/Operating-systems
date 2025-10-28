@@ -1,11 +1,14 @@
 #ifndef LAB_3_ARRAY_H
 #define LAB_3_ARRAY_H
 #include <memory>
+#include "solution_namespace.h"
+
+using namespace solution;
 
 class Array {
-    std::shared_ptr<int[]> data_;
+    shared_ptr<int[]> data_;
     int size_;
-    std::mutex mtx_;
+    mutex mtx_;
 
 public:
     Array();
@@ -22,7 +25,7 @@ public:
     int& operator[](int index);
     const int& operator[](int index) const;
 
-    std::mutex& get_mutex();
+    mutex& get_mutex();
 
     int* begin();
     int* end();
