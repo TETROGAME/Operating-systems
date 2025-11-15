@@ -130,10 +130,10 @@ Operating-systems/
 │   | ├── ThreadHandler.cpp
 │   | ├── Marker.cpp
 │   ├── tests/
-│       ├── test_array.cpp
-│       ├── test_marker.cpp
-│       ├── test_threadhandler.cpp
-│       └── test_end-to-end.cpp
+│   │ ├── test_array.cpp
+│   │ ├── test_marker.cpp
+│   │ ├── test_threadhandler.cpp
+│   │ └── test_end-to-end.cpp
 |   └── solution_namespace.h
 ├── Lab 4/
 │   └── ...
