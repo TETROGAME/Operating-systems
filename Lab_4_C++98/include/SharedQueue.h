@@ -3,15 +3,16 @@
 #include <windows.h>
 #include <string>
 #include <cstddef>
+#include <solution_namespace.h>
 #include <stdio.h>
 
-
+using namespace solution;
 static const unsigned int MAX_MESSAGE_LEN = 20;
 
 #pragma pack(push,1)
 struct QueueHeader {
-    unsigned int capacity;          // slots count
-    unsigned int msgLen;            // fixed length (20)
+    unsigned int capacity;
+    unsigned int msgLen;
     unsigned int readIndex;
     unsigned int writeIndex;
     unsigned int senderReadyCount;
@@ -25,8 +26,8 @@ struct MessageSlot {
     char data[MAX_MESSAGE_LEN];
 };
 
-std::string MakeObjectBaseName(const std::string& fileName);
-std::string MakeNamedObject(const std::string& base, const std::string& suffix);
+string MakeObjectBaseName(const string& fileName);
+string MakeNamedObject(const string& base, const string& suffix);
 
 inline void PrintLastErrorA(const char* msg) {
     DWORD e = GetLastError();
@@ -44,13 +45,13 @@ public:
     SharedQueue();
     ~SharedQueue();
 
-    bool CreateAsReceiver(const std::string& fileName,
+    bool CreateAsReceiver(const string& fileName,
                           unsigned int capacity,
                           unsigned int expectedSenders);
-    bool OpenAsSender(const std::string& fileName);
+    bool OpenAsSender(const string& fileName);
     bool IsValid() const;
-    bool PopMessage(std::string &outMsg, bool verbose);
-    bool PushMessage(const std::string& msg, bool verbose);
+    bool PopMessage(string &outMsg, bool verbose);
+    bool PushMessage(const string& msg, bool verbose);
     bool WaitAllSendersReady(DWORD timeoutMs);
     bool SignalSenderReady();
     void SignalShutdown();
@@ -65,9 +66,9 @@ private:
     HANDLE hSemFull_;
     HANDLE hAllReadyEvent_;
 
-    std::string baseName_;
+    string baseName_;
 
-    bool MapFile(const std::string& path, bool create, unsigned int capacity);
+    bool MapFile(const string& path, bool create, unsigned int capacity);
     bool OpenSyncObjects(bool create, unsigned int capacity, unsigned int expectedSenders);
     void CloseAll();
 };
