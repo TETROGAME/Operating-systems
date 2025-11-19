@@ -1,12 +1,16 @@
 #ifndef LAB_4C_98_NAMESPACE_SOLUTION_H
 #define LAB_4C_98_NAMESPACE_SOLUTION_H
+#include <iostream>
+#include <vector>
+#include <string>
 namespace solution {
     using std::cin;
     using std::cout;
-    using std::err;
+    using std::cerr;
 
     using std::string;
     using std::getline;
+    using std::atoi;
 
     using std::vector;
 }
