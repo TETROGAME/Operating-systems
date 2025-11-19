@@ -1,7 +1,7 @@
 #include "../include/SharedQueue.h"
 #include <cstring>
-#include <algorithm>
-
+#include <solution_namespace.h>
+using namespace solution;
 SharedQueue::SharedQueue()
 : hFile_(INVALID_HANDLE_VALUE),
   hMap_(NULL),
@@ -16,8 +16,8 @@ SharedQueue::~SharedQueue() {
     CloseAll();
 }
 
-std::string MakeObjectBaseName(const std::string& fileName) {
-    std::string base;
+string MakeObjectBaseName(const string& fileName) {
+    string base;
     base.reserve(fileName.size());
     size_t i;
     for (i = 0; i < fileName.size(); ++i) {
@@ -30,9 +30,8 @@ std::string MakeObjectBaseName(const std::string& fileName) {
     return base;
 }
 
-std::string MakeNamedObject(const std::string& base, const std::string& suffix) {
-    // No Global\ prefix to avoid privilege issues
-    return std::string("IPC_") + base + "_" + suffix;
+string MakeNamedObject(const string& base, const string& suffix) {
+    return string("IPC_") + base + "_" + suffix;
 }
 
 void SharedQueue::CloseAll() {
@@ -50,7 +49,7 @@ void SharedQueue::CloseAll() {
     if (hAllReadyEvent_) { CloseHandle(hAllReadyEvent_); hAllReadyEvent_ = NULL; }
 }
 
-bool SharedQueue::MapFile(const std::string& path, bool create, unsigned int capacity) {
+bool SharedQueue::MapFile(const string& path, bool create, unsigned int capacity) {
     DWORD access = GENERIC_READ | GENERIC_WRITE;
     DWORD share = FILE_SHARE_READ | FILE_SHARE_WRITE;
     DWORD disp = create ? CREATE_ALWAYS : OPEN_EXISTING;
@@ -93,10 +92,10 @@ bool SharedQueue::MapFile(const std::string& path, bool create, unsigned int cap
 }
 
 bool SharedQueue::OpenSyncObjects(bool create, unsigned int capacity, unsigned int expectedSenders) {
-    std::string mutexName = MakeNamedObject(baseName_, "mtx");
-    std::string semEmptyName = MakeNamedObject(baseName_, "semEmpty");
-    std::string semFullName  = MakeNamedObject(baseName_, "semFull");
-    std::string readyEventName = MakeNamedObject(baseName_, "allReady");
+    string mutexName = MakeNamedObject(baseName_, "mtx");
+    string semEmptyName = MakeNamedObject(baseName_, "semEmpty");
+    string semFullName  = MakeNamedObject(baseName_, "semFull");
+    string readyEventName = MakeNamedObject(baseName_, "allReady");
 
     if (create) {
         hMutex_ = CreateMutexA(NULL, FALSE, mutexName.c_str());
@@ -135,7 +134,7 @@ bool SharedQueue::OpenSyncObjects(bool create, unsigned int capacity, unsigned i
     return true;
 }
 
-bool SharedQueue::CreateAsReceiver(const std::string& fileName,
+bool SharedQueue::CreateAsReceiver(const string& fileName,
                                    unsigned int capacity,
                                    unsigned int expectedSenders) {
     baseName_ = MakeObjectBaseName(fileName);
@@ -148,7 +147,7 @@ bool SharedQueue::CreateAsReceiver(const std::string& fileName,
     return true;
 }
 
-bool SharedQueue::OpenAsSender(const std::string& fileName) {
+bool SharedQueue::OpenAsSender(const string& fileName) {
     baseName_ = MakeObjectBaseName(fileName);
     if (!MapFile(fileName, false, 0))
         return false;
@@ -202,7 +201,7 @@ bool SharedQueue::IsShuttingDown() const {
     return header_ != NULL && header_->shuttingDown != 0;
 }
 
-bool SharedQueue::PopMessage(std::string &outMsg, bool verbose) {
+bool SharedQueue::PopMessage(string &outMsg, bool verbose) {
     outMsg.clear();
     if (!IsValid()) return false;
 
@@ -233,7 +232,7 @@ bool SharedQueue::PopMessage(std::string &outMsg, bool verbose) {
     return true;
 }
 
-bool SharedQueue::PushMessage(const std::string& msg, bool verbose) {
+bool SharedQueue::PushMessage(const string& msg, bool verbose) {
     if (!IsValid()) return false;
     if (msg.size() >= MAX_MESSAGE_LEN) {
         printf("[Sender] Message too long (>= %u)\n", MAX_MESSAGE_LEN);
