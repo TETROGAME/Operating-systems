@@ -2,45 +2,47 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <solution_namespace.h>
+using namespace solution;
 
-static unsigned int to_uint(const std::string& s) {
-    return (unsigned int)std::atoi(s.c_str());
+static unsigned int to_uint(const string& s) {
+    return static_cast<unsigned int>(atoi(s.c_str()));
 }
 
 int main() {
-    std::cout << "=== Receiver ===\n";
-    std::cout << "Input binary file name: ";
-    std::string fileName;
-    std::getline(std::cin, fileName);
+    cout << "=== Receiver ===\n";
+    cout << "Input binary file name: ";
+    string fileName;
+    getline(cin, fileName);
 
-    std::cout << "Input records count (capacity): ";
-    std::string tmp;
-    std::getline(std::cin, tmp);
+    cout << "Input records count (capacity): ";
+    string tmp;
+    getline(cin, tmp);
     unsigned int capacity = to_uint(tmp);
 
-    std::cout << "Input desired Sender process count: ";
-    std::string tmp2;
-    std::getline(std::cin, tmp2);
+    cout << "Input desired Sender process count: ";
+    string tmp2;
+    getline(cin, tmp2);
     unsigned int senderCount = to_uint(tmp2);
 
     SharedQueue queue;
     if (!queue.CreateAsReceiver(fileName, capacity, senderCount)) {
-        std::cerr << "Error creating queue.\n";
+        cerr << "Error creating queue.\n";
         return 1;
     }
 
-    std::cout << "Launching " << senderCount << " instances of sender process...\n";
-    std::string exeName = "sender.exe";
+    cout << "Launching " << senderCount << " instances of sender process...\n";
+    string exeName = "sender.exe";
     unsigned int i;
     for (i = 0; i < senderCount; ++i) {
-        std::string cmd = "\"" + exeName + "\" \"" + fileName + "\"";
+        string cmd = "\"" + exeName + "\" \"" + fileName + "\"";
         STARTUPINFOA si;
         ZeroMemory(&si, sizeof(si));
         si.cb = sizeof(si);
         PROCESS_INFORMATION pi;
         ZeroMemory(&pi, sizeof(pi));
 
-        std::vector<char> buf(cmd.begin(), cmd.end());
+        vector<char> buf(cmd.begin(), cmd.end());
         buf.push_back('\0');
         DWORD creationFlags = CREATE_NEW_CONSOLE;
 
@@ -63,29 +65,29 @@ int main() {
         }
     }
 
-    std::cout << "Waiting for all Senders to be ready...\n";
+    cout << "Waiting for all Senders to be ready...\n";
     queue.WaitAllSendersReady(INFINITE);
-    std::cout << "All Senders ready. Commands: r - read, q - quit.\n";
+    cout << "All Senders ready. Commands: r - read, q - quit.\n";
 
     while (true) {
-        std::cout << "[Receiver] Command (r/q): ";
-        std::string cmdLine;
-        if (!std::getline(std::cin, cmdLine)) break;
+        cout << "[Receiver] Command (r/q): ";
+        string cmdLine;
+        if (!getline(cin, cmdLine)) break;
         if (cmdLine == "r") {
-            std::string msg;
+            string msg;
             bool ok = queue.PopMessage(msg, true);
             if (!ok) {
                 if (queue.IsShuttingDown())
-                    std::cout << "[Receiver] Quitting...\n";
+                    cout << "[Receiver] Quitting...\n";
                 else
-                    std::cout << "[Receiver] No messages\n";
+                    cout << "[Receiver] No messages\n";
             }
         } else if (cmdLine == "q") {
-            std::cout << "[Receiver] Finishing. shutdown signal.\n";
+            cout << "[Receiver] Finishing. shutdown signal.\n";
             queue.SignalShutdown();
             break;
         } else {
-            std::cout << "Unknown command.\n";
+            cout << "Unknown command.\n";
         }
     }
     return 0;
