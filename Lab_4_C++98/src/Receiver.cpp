@@ -1,8 +1,8 @@
-#include "../include/SharedQueue.h"
+#include "../headers/SharedQueue.h"
 #include <iostream>
 #include <string>
 #include <vector>
-#include <solution_namespace.h>
+
 using namespace solution;
 
 static unsigned int to_uint(const string& s) {
@@ -32,9 +32,8 @@ int main() {
     }
 
     cout << "Launching " << senderCount << " instances of sender process...\n";
-    string exeName = "sender.exe";
-    unsigned int i;
-    for (i = 0; i < senderCount; ++i) {
+    string exeName = ".\\sender.exe";
+    for (unsigned int i = 0; i < senderCount; ++i) {
         string cmd = "\"" + exeName + "\" \"" + fileName + "\"";
         STARTUPINFOA si;
         ZeroMemory(&si, sizeof(si));
@@ -42,22 +41,11 @@ int main() {
         PROCESS_INFORMATION pi;
         ZeroMemory(&pi, sizeof(pi));
 
-        vector<char> buf(cmd.begin(), cmd.end());
+        std::vector<char> buf(cmd.begin(), cmd.end());
         buf.push_back('\0');
         DWORD creationFlags = CREATE_NEW_CONSOLE;
 
-        if (!CreateProcessA(
-                NULL,
-                &buf[0],
-                NULL,
-                NULL,
-                FALSE,
-                creationFlags,
-                NULL,
-                NULL,
-                &si,
-                &pi))
-        {
+        if (!CreateProcessA(NULL, &buf[0], NULL, NULL, FALSE, creationFlags, NULL, NULL, &si, &pi)) {
             PrintLastErrorA("CreateProcess sender");
         } else {
             CloseHandle(pi.hThread);

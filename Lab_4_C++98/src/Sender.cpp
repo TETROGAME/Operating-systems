@@ -1,7 +1,7 @@
-#include "../include/SharedQueue.h"
+#include "../headers/SharedQueue.h"
 #include <iostream>
-#include <solution_namespace.h>
 #include <string>
+
 using namespace solution;
 
 int main(int argc, char* argv[]) {
@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (!queue.SignalSenderReady()) {
-        cerr << "[Sender] Can't sent ready signal.\n";
+        cerr << "[Sender] Can't send ready signal.\n";
         return 1;
     }
     cout << "[Sender] Ready. Commands: s - send, q - quit.\n";
