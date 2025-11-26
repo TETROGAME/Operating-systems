@@ -1,11 +1,13 @@
-#include "../include/SharedQueue.h"
-#include <cstring>
-#include <solution_namespace.h>
+#include "../headers/SharedQueue.h"
+#include <algorithm>
+
 using namespace solution;
+
 SharedQueue::SharedQueue()
 : hFile_(INVALID_HANDLE_VALUE),
   hMap_(NULL),
-  header_(NULL),
+  baseView_(NULL),
+  mappedSize_(0),
   slots_(NULL),
   hMutex_(NULL),
   hSemEmpty_(NULL),
@@ -19,8 +21,7 @@ SharedQueue::~SharedQueue() {
 string MakeObjectBaseName(const string& fileName) {
     string base;
     base.reserve(fileName.size());
-    size_t i;
-    for (i = 0; i < fileName.size(); ++i) {
+    for (size_t i = 0; i < fileName.size(); ++i) {
         char c = fileName[i];
         if (c == '\\' || c == '/' || c == ':')
             base.push_back('_');
@@ -35,14 +36,14 @@ string MakeNamedObject(const string& base, const string& suffix) {
 }
 
 void SharedQueue::CloseAll() {
-    if (header_) {
-        UnmapViewOfFile(header_);
-        header_ = NULL;
+    if (baseView_) {
+        UnmapViewOfFile(baseView_);
+        baseView_ = NULL;
         slots_ = NULL;
+        mappedSize_ = 0;
     }
     if (hMap_) { CloseHandle(hMap_); hMap_ = NULL; }
     if (hFile_ != INVALID_HANDLE_VALUE) { CloseHandle(hFile_); hFile_ = INVALID_HANDLE_VALUE; }
-
     if (hMutex_) { CloseHandle(hMutex_); hMutex_ = NULL; }
     if (hSemEmpty_) { CloseHandle(hSemEmpty_); hSemEmpty_ = NULL; }
     if (hSemFull_) { CloseHandle(hSemFull_); hSemFull_ = NULL; }
@@ -54,8 +55,7 @@ bool SharedQueue::MapFile(const string& path, bool create, unsigned int capacity
     DWORD share = FILE_SHARE_READ | FILE_SHARE_WRITE;
     DWORD disp = create ? CREATE_ALWAYS : OPEN_EXISTING;
 
-    hFile_ = CreateFileA(path.c_str(), access, share, NULL, disp,
-                         FILE_ATTRIBUTE_NORMAL, NULL);
+    hFile_ = CreateFileA(path.c_str(), access, share, NULL, disp, FILE_ATTRIBUTE_NORMAL, NULL);
     if (hFile_ == INVALID_HANDLE_VALUE) {
         PrintLastErrorA("Create/Open file failed");
         return false;
@@ -63,7 +63,7 @@ bool SharedQueue::MapFile(const string& path, bool create, unsigned int capacity
 
     DWORD totalSize;
     if (create) {
-        totalSize = (DWORD)(sizeof(QueueHeader) + capacity * sizeof(MessageSlot));
+        totalSize = (DWORD)(HEADER_BINARY_SIZE + capacity * sizeof(MessageSlot));
     } else {
         LARGE_INTEGER sz;
         if (!GetFileSizeEx(hFile_, &sz)) {
@@ -71,24 +71,56 @@ bool SharedQueue::MapFile(const string& path, bool create, unsigned int capacity
             return false;
         }
         totalSize = (DWORD)sz.QuadPart;
+        if (totalSize < HEADER_BINARY_SIZE) {
+            printf("[SharedQueue] Invalid file size\n");
+            return false;
+        }
     }
 
-    hMap_ = CreateFileMappingA(
-        hFile_, NULL, PAGE_READWRITE,
-        0, totalSize, NULL
-    );
+    hMap_ = CreateFileMappingA(hFile_, NULL, PAGE_READWRITE, 0, totalSize, NULL);
     if (!hMap_) {
         PrintLastErrorA("CreateFileMapping");
         return false;
     }
 
-    header_ = (QueueHeader*)MapViewOfFile(hMap_, FILE_MAP_ALL_ACCESS, 0, 0, 0);
-    if (!header_) {
+    baseView_ = (unsigned char*)MapViewOfFile(hMap_, FILE_MAP_ALL_ACCESS, 0, 0, 0);
+    if (!baseView_) {
         PrintLastErrorA("MapViewOfFile");
         return false;
     }
-    slots_ = (MessageSlot*)((char*)header_ + sizeof(QueueHeader));
+    mappedSize_ = totalSize;
+    slots_ = (MessageSlot*)(baseView_ + HEADER_BINARY_SIZE);
     return true;
+}
+
+void SharedQueue::ReadHeader(QueueHeaderBinary &out) const {
+    const unsigned char* p = baseView_;
+    const unsigned int* pu = reinterpret_cast<const unsigned int*>(p);
+    out.capacity         = pu[0];
+    out.msgLen           = pu[1];
+    out.readIndex        = pu[2];
+    out.writeIndex       = pu[3];
+    out.senderReadyCount = pu[4];
+    out.expectedSenders  = pu[5];
+    out.shuttingDown     = p[24];
+    out.reserved[0]      = p[25];
+    out.reserved[1]      = p[26];
+    out.reserved[2]      = p[27];
+}
+
+void SharedQueue::WriteHeader(const QueueHeaderBinary &hdr) {
+    unsigned char* p = baseView_;
+    unsigned int* pu = (unsigned int*)p;
+    pu[0] = hdr.capacity;
+    pu[1] = hdr.msgLen;
+    pu[2] = hdr.readIndex;
+    pu[3] = hdr.writeIndex;
+    pu[4] = hdr.senderReadyCount;
+    pu[5] = hdr.expectedSenders;
+    p[24] = hdr.shuttingDown;
+    p[25] = hdr.reserved[0];
+    p[26] = hdr.reserved[1];
+    p[27] = hdr.reserved[2];
 }
 
 bool SharedQueue::OpenSyncObjects(bool create, unsigned int capacity, unsigned int expectedSenders) {
@@ -110,14 +142,16 @@ bool SharedQueue::OpenSyncObjects(bool create, unsigned int capacity, unsigned i
         hAllReadyEvent_ = CreateEventA(NULL, TRUE, FALSE, readyEventName.c_str());
         if (!hAllReadyEvent_) { PrintLastErrorA("CreateEvent allReady"); return false; }
 
-        header_->capacity = capacity;
-        header_->msgLen = MAX_MESSAGE_LEN;
-        header_->readIndex = 0;
-        header_->writeIndex = 0;
-        header_->senderReadyCount = 0;
-        header_->expectedSenders = expectedSenders;
-        header_->shuttingDown = 0;
-        header_->reserved[0] = header_->reserved[1] = header_->reserved[2] = 0;
+        QueueHeaderBinary hdr;
+        hdr.capacity = capacity;
+        hdr.msgLen = MAX_MESSAGE_LEN;
+        hdr.readIndex = 0;
+        hdr.writeIndex = 0;
+        hdr.senderReadyCount = 0;
+        hdr.expectedSenders = expectedSenders;
+        hdr.shuttingDown = 0;
+        hdr.reserved[0] = hdr.reserved[1] = hdr.reserved[2] = 0;
+        WriteHeader(hdr);
     } else {
         hMutex_ = OpenMutexA(SYNCHRONIZE | MUTEX_MODIFY_STATE, FALSE, mutexName.c_str());
         if (!hMutex_) { PrintLastErrorA("OpenMutex"); return false; }
@@ -142,8 +176,7 @@ bool SharedQueue::CreateAsReceiver(const string& fileName,
         return false;
     if (!OpenSyncObjects(true, capacity, expectedSenders))
         return false;
-    printf("[Receiver] Queue created: capacity=%u, senders=%u\n",
-           capacity, expectedSenders);
+    printf("[Receiver] Queue created: capacity=%u, senders=%u\n", capacity, expectedSenders);
     return true;
 }
 
@@ -153,7 +186,10 @@ bool SharedQueue::OpenAsSender(const string& fileName) {
         return false;
     if (!OpenSyncObjects(false, 0, 0))
         return false;
-    if (header_->msgLen != MAX_MESSAGE_LEN) {
+
+    QueueHeaderBinary hdr;
+    ReadHeader(hdr);
+    if (hdr.msgLen != MAX_MESSAGE_LEN) {
         printf("[Sender] Incompatible message length\n");
         return false;
     }
@@ -161,7 +197,17 @@ bool SharedQueue::OpenAsSender(const string& fileName) {
 }
 
 bool SharedQueue::IsValid() const {
-    return header_ != NULL;
+    return baseView_ != NULL;
+}
+
+unsigned int SharedQueue::Capacity() const {
+    QueueHeaderBinary hdr; ReadHeader(hdr); return hdr.capacity;
+}
+unsigned int SharedQueue::ReadIndex() const {
+    QueueHeaderBinary hdr; ReadHeader(hdr); return hdr.readIndex;
+}
+unsigned int SharedQueue::WriteIndex() const {
+    QueueHeaderBinary hdr; ReadHeader(hdr); return hdr.writeIndex;
 }
 
 bool SharedQueue::WaitAllSendersReady(DWORD timeoutMs) {
@@ -178,27 +224,32 @@ bool SharedQueue::SignalSenderReady() {
         PrintLastErrorA("Mutex wait SignalSenderReady");
         return false;
     }
-    header_->senderReadyCount++;
-    if (header_->senderReadyCount == header_->expectedSenders) {
+    QueueHeaderBinary hdr; ReadHeader(hdr);
+    hdr.senderReadyCount++;
+    if (hdr.senderReadyCount == hdr.expectedSenders) {
         SetEvent(hAllReadyEvent_);
     }
+    WriteHeader(hdr);
     ReleaseMutex(hMutex_);
     return true;
 }
 
 void SharedQueue::SignalShutdown() {
-    if (!header_) return;
+    if (!baseView_) return;
     WaitForSingleObject(hMutex_, INFINITE);
-    header_->shuttingDown = 1;
+    QueueHeaderBinary hdr; ReadHeader(hdr);
+    hdr.shuttingDown = 1;
+    WriteHeader(hdr);
     ReleaseMutex(hMutex_);
 
-    ReleaseSemaphore(hSemFull_, header_->capacity, NULL);
-    ReleaseSemaphore(hSemEmpty_, header_->capacity, NULL);
+    ReleaseSemaphore(hSemFull_, hdr.capacity, NULL);
+    ReleaseSemaphore(hSemEmpty_, hdr.capacity, NULL);
     SetEvent(hAllReadyEvent_);
 }
 
 bool SharedQueue::IsShuttingDown() const {
-    return header_ != NULL && header_->shuttingDown != 0;
+    QueueHeaderBinary hdr; ReadHeader(hdr);
+    return hdr.shuttingDown != 0;
 }
 
 bool SharedQueue::PopMessage(string &outMsg, bool verbose) {
@@ -213,15 +264,20 @@ bool SharedQueue::PopMessage(string &outMsg, bool verbose) {
 
     WaitForSingleObject(hMutex_, INFINITE);
 
-    if (header_->shuttingDown &&
-        header_->readIndex == header_->writeIndex) {
+    QueueHeaderBinary hdr;
+    ReadHeader(hdr);
+
+    if (hdr.shuttingDown && hdr.readIndex == hdr.writeIndex) {
         ReleaseMutex(hMutex_);
         return false;
     }
 
-    unsigned int idx = header_->readIndex % header_->capacity;
-    outMsg = slots_[idx].data;
-    header_->readIndex = (header_->readIndex + 1) % header_->capacity;
+    unsigned int idx = hdr.readIndex % hdr.capacity;
+    const char* src = slots_[idx].data;
+    outMsg.assign(src);
+
+    hdr.readIndex = (hdr.readIndex + 1) % hdr.capacity;
+    WriteHeader(hdr);
 
     ReleaseMutex(hMutex_);
     ReleaseSemaphore(hSemEmpty_, 1, NULL);
@@ -250,15 +306,19 @@ bool SharedQueue::PushMessage(const string& msg, bool verbose) {
         PrintLastErrorA("Mutex wait push");
         return false;
     }
-    if (header_->shuttingDown) {
+
+    QueueHeaderBinary hdr; ReadHeader(hdr);
+    if (hdr.shuttingDown) {
         ReleaseMutex(hMutex_);
         return false;
     }
 
-    unsigned int idx = header_->writeIndex % header_->capacity;
-    memset(slots_[idx].data, 0, MAX_MESSAGE_LEN);
-    memcpy(slots_[idx].data, msg.c_str(), msg.size());
-    header_->writeIndex = (header_->writeIndex + 1) % header_->capacity;
+    unsigned int idx = hdr.writeIndex % hdr.capacity;
+    std::fill(slots_[idx].data, slots_[idx].data + MAX_MESSAGE_LEN, '\0');
+    std::copy(msg.begin(), msg.end(), slots_[idx].data);
+
+    hdr.writeIndex = (hdr.writeIndex + 1) % hdr.capacity;
+    WriteHeader(hdr);
 
     ReleaseMutex(hMutex_);
     ReleaseSemaphore(hSemFull_, 1, NULL);

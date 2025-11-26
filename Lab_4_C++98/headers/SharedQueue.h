@@ -1,16 +1,18 @@
 #ifndef LAB_4_C__98_SHAREDQUEUE_H
 #define LAB_4_C__98_SHAREDQUEUE_H
+
 #include <windows.h>
 #include <string>
-#include <cstddef>
-#include <solution_namespace.h>
+#include <iostream>
 #include <stdio.h>
+#include "solution_namespace.h"
 
 using namespace solution;
-static const unsigned int MAX_MESSAGE_LEN = 20;
 
-#pragma pack(push,1)
-struct QueueHeader {
+static const unsigned int MAX_MESSAGE_LEN = 20;
+static const size_t HEADER_BINARY_SIZE = 28;
+
+struct QueueHeaderBinary {
     unsigned int capacity;
     unsigned int msgLen;
     unsigned int readIndex;
@@ -20,7 +22,6 @@ struct QueueHeader {
     unsigned char shuttingDown;
     unsigned char reserved[3];
 };
-#pragma pack(pop)
 
 struct MessageSlot {
     char data[MAX_MESSAGE_LEN];
@@ -40,6 +41,7 @@ inline void PrintLastErrorA(const char* msg) {
     printf("%s (code=%lu): %s\n", msg, (unsigned long)e, buf ? buf : "(no message)");
     if (buf) LocalFree(buf);
 }
+
 class SharedQueue {
 public:
     SharedQueue();
@@ -56,21 +58,27 @@ public:
     bool SignalSenderReady();
     void SignalShutdown();
     bool IsShuttingDown() const;
+    unsigned int Capacity() const;
+    unsigned int ReadIndex() const;
+    unsigned int WriteIndex() const;
+
 private:
     HANDLE hFile_;
     HANDLE hMap_;
-    QueueHeader* header_;
+    unsigned char* baseView_;
+    size_t mappedSize_;
     MessageSlot* slots_;
     HANDLE hMutex_;
     HANDLE hSemEmpty_;
     HANDLE hSemFull_;
     HANDLE hAllReadyEvent_;
-
     string baseName_;
 
+    void ReadHeader(QueueHeaderBinary &out) const;
+    void WriteHeader(const QueueHeaderBinary &hdr);
     bool MapFile(const string& path, bool create, unsigned int capacity);
     bool OpenSyncObjects(bool create, unsigned int capacity, unsigned int expectedSenders);
     void CloseAll();
 };
 
-#endif //LAB_4_C__98_SHAREDQUEUE_H
+#endif
