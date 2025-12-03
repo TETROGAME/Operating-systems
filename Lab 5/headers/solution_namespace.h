@@ -13,9 +13,12 @@ namespace sln {
     using std::size_t;
     using std::memcpy;
     using std::string;
+    using std::cin;
     using std::cout;
     using std::cerr;
     using std::endl;
+    using std::ios;
+    using std::vector;
     using std::ifstream;
     using std::ofstream;
     using std::fstream;
