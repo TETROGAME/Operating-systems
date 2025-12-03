@@ -5,16 +5,17 @@
 #ifndef LAB_5_EMPLOYEE_H
 #define LAB_5_EMPLOYEE_H
 
+#include "solution_namespace.h"
+using namespace sln;
 
-class Employee {
-private:
+struct Employee {
     int num;
-    char name[10];
+    string name;
     double hours;
-public:
-    Employee();
 
-    Employee(const int& num, char* name, const double& hours);
+    Employee();
+    Employee(int n, const string& name_str, double h);
+    void Print() const;
 };
 
 

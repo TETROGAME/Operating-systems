@@ -1,9 +1,10 @@
 #include "../headers/Employee.h"
 
-Employee::Employee(): num(), name(), hours() {}
+Employee::Employee() : num(0), name(), hours(0.0) {}
 
-Employee::Employee(const int &num, char *name, const double &hours) {
-    this->num = num;
-    // this->name = name;
-    this->hours = hours;
+Employee::Employee(int n, const string& name_str, double h)
+    : num(n), name(name_str), hours(h) {}
+
+void Employee::Print() const {
+    cout << "ID: " << num << "\tName: " << name << "\tHours: " << hours << endl;
 }
