@@ -13,12 +13,11 @@
 
 ## Task Progress
 
-> **Lab 1:** Complete  
-> **Lab 2 (C++98):** Complete  
-> **Lab 2 (C++20):** Complete  
-> **Lab 3:** Complete  
-> **Lab 4:** Complete  
-> **Lab 5:** Yet to be released
+> **Lab 1 (C++98):** Complete  
+> **Lab 2 (C++98 & C++20):** Complete  
+> **Lab 3 (C++20):** Complete  
+> **Lab 4 (C++98):** Complete  
+> **Lab 5 (C++98):** Complete
 
 ---
 
@@ -100,24 +99,24 @@ Create a console program where the main thread coordinates several marker thread
 ### Lab 4: Process Synchronization (Sender / Receiver via shared binary file)
 
 **Objective:**  
-Implement inter-process message passing using a shared binary file as a FIFO ring buffer. One Receiver process reads messages; multiple Sender processes write messages. Demonstrate process synchronization and signaling so that reading and writing block appropriately when the buffer is empty or full.
+Implement inter-process message passing using a shared binary file as a FIFO ring buffer. One Receiver process reads messages; multiple Sender processes write messages. Demonstrate process synchronization using OS primitives (named events, semaphores, mutexes).
 
 **Requirements (summary):**
 - Receiver:
-    - Read from console: name of the binary file and number of records in it (capacity).
-    - Create the binary file for messages; maximum message length = 20 characters.
-    - Read from console the number of Sender processes to start and launch them, passing the file name as a command-line argument.
-    - Wait for a readiness signal from all Senders before entering a control loop.
-    - In a loop, accept console commands to either read the next message from the file or terminate. If the file is empty when a read is requested, Receiver should block until a new message arrives.
+  - Read from console: name of the binary file and number of records in it (capacity).
+  - Create the binary file for messages; maximum message length = 20 characters.
+  - Read from console the number of Sender processes to start and launch them, passing the file name as a command-line argument.
+  - Wait for a readiness signal from all Senders before entering a control loop.
+  - In a loop, accept console commands to either read the next message from the file or terminate. If the file is empty when a read is requested, Receiver should block until a new message arrives.
 
 - Sender:
-    - Open the shared message file (file name from command line).
-    - Send a readiness signal to Receiver once started.
-    - In a loop, accept console commands to either send a message (text input, max < 20 chars) or terminate. If the file is full when a write is requested, Sender should block until space is available.
+  - Open the shared message file (file name from command line).
+  - Send a readiness signal to Receiver once started.
+  - In a loop, accept console commands to either send a message (text input, max < 20 chars) or terminate. If the file is full when write is requested, Sender should block until space is available.
 
 - Additional:
-    - The file-based message buffer must operate as a FIFO circular queue so messages are read in the same order they were sent across senders.
-    - A simplified variant (for testing) may use a single Sender and a single Receiver with capacity = 1.
+  - The file-based message buffer must operate as a FIFO circular queue so messages are read in the same order they were sent across senders.
+  - A simplified variant (for testing) may use a single Sender and a single Receiver with capacity = 1.
 
 **Key Files (suggested):**
 - `Lab 4/Receiver.cpp`
@@ -125,6 +124,65 @@ Implement inter-process message passing using a shared binary file as a FIFO rin
 - `Lab 4/RingBuffer.h` / `Lab 4/RingBuffer.cpp` — on-disk circular queue helpers
 - `Lab 4/ipc_helpers.h` — platform-specific synchronization primitives (events, named mutexes/semaphores)
 - `Lab 4/README.md` — instructions to build and run Receiver and Sender
+
+---
+
+### Lab 5: Named Pipes — Server / Clients (Data exchange via named pipes)
+
+**Objective:**  
+Implement coordinated access to a binary employee file by multiple parallel client processes through named pipes. One Server process mediates client requests, enforcing per-record read/write access policies while clients request read or modification operations via IPC.
+
+**Requirements (summary):**
+- Server:
+  - Read from console: the name of the binary data file and initial employee data (records). Each record has the following structure:
+    ```cpp
+    struct employee
+    {
+    int num;        // employee ID
+    char name[10];  // employee name
+    double hours;   // number of hours worked
+    };
+    ```
+  - Create the binary file and write the initial records to it.
+  - Print the contents of the created file to the console.
+  - Read from console the number of Client processes to start and launch them, arranging IPC channels (named pipes) for each client or using a shared named pipe protocol.
+  - Serve client requests over named pipes so that:
+    - A client requesting to modify a record acquires exclusive access to that record; other clients are blocked from reading or writing this record until the modifier releases it.
+    - A client requesting to read a record may share access with other readers of the same record (concurrent reads allowed), but readers must be blocked while a writer holds or requests exclusive access.
+  - After all clients finish, print the modified file to the console.
+  - Allow server termination on a console command.
+
+- Client:
+  - Start and connect to the Server via the designated named pipe(s).
+  - Run an interactive loop:
+    - Prompt the user for one of: modify a record, read a record, or exit.
+    - For read:
+      - Ask for the employee ID key.
+      - Send a read request to the Server.
+      - Receive and display the record from the Server.
+      - When the user signals, send a release request to the Server to end access.
+    - For modify:
+      - Ask for the employee ID key.
+      - Send a lock/modify request to the Server.
+      - Receive and display the current record from the Server.
+      - Request new values for the record fields from the console.
+      - Send the modified record to the Server when ready.
+      - When the user signals, send a release request to the Server to end exclusive access.
+    - For exit:
+      - Disconnect and terminate the client process.
+  - All access to records is by key (employee ID).
+
+- Additional:
+  - Design the named pipe protocol to support at minimum: request type (read/modify/release), record key, and payload (record data or status).
+  - Include graceful shutdown and error handling (broken pipe, client disconnect, malformed requests).
+  - Provide a simple test scenario with 2–3 clients demonstrating concurrent reads, exclusive write locking, and final file modifications.
+
+**Key Files (suggested):**
+- `Lab 5/server.cpp`
+- `Lab 5/client.cpp`
+- `Lab 5/employee.h` / `Lab 5/employee.cpp`
+- `Lab 5/FileHandler.h` / `Lab 5/FileHandler.cpp`
+- `Lab 5/Request.h` / `Lab 5/Request.cpp`
 
 ---
 
@@ -183,5 +241,19 @@ Operating-systems/
 │   │  └── test_shared_queue.cpp
 │   └── solution_namespace.h
 └── Lab 5/
-    └── ...
+    ├── headers/
+    │  ├── Employee.h
+    │  ├── FileHandler.h
+    │  ├── Request.h
+    │  ├── solution_namespace.h
+    ├── src/
+    │  ├── client.cpp
+    │  ├── Employee.cpp
+    │  ├── FileHandler.cpp
+    │  ├── Request.cpp
+    │  ├── server.cpp
+    └── tests/
+       ├── test_e2e.cpp
+       ├── test_employee.cpp
+       └── test_file_operation.cpp
 ```
