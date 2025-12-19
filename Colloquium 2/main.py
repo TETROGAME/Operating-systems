@@ -1,13 +1,13 @@
+import uvicorn
 from fastapi import FastAPI
+from app.routers.tasks import router as tasks_router
 
-app = FastAPI()
+app = FastAPI(
+    title="To-Do List API",
+    version="0.1.0"
+)
 
+app.include_router(tasks_router)
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-
-@app.get("/hello/{name}")
-async def say_hello(name: str):
-    return {"message": f"Hello {name}"}
+if __name__ == '__main__':
+    uvicorn.run('main:app', reload=True)
