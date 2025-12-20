@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 
-from app.TaskSchemes import TaskCreate, TaskUpdate, TaskOut
+from app.schemas import TaskCreate, TaskUpdate, TaskOut
 
 class MemoryStorage:
     def __init__(self) -> None:

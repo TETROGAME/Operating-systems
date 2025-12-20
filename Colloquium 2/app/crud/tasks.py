@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from fastapi import HTTPException, status
 
-from app.TaskSchemes import TaskCreate, TaskUpdate, TaskOut
+from app.schemas import TaskCreate, TaskUpdate, TaskOut
 from app.storage.memory import storage
 
 def list_tasks() -> List[TaskOut]:

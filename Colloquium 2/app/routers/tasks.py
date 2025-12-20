@@ -2,7 +2,7 @@ from typing import List
 
 from fastapi import APIRouter, status
 
-from app.TaskSchemes import TaskCreate, TaskUpdate, TaskOut
+from app.schemas import TaskCreate, TaskUpdate, TaskOut
 from app.crud.tasks import (
     list_tasks,
     create_task,
