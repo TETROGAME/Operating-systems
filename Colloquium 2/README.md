@@ -34,7 +34,7 @@ Inside the Colloquium 2/ directory:
 Colloquium 2/
 ├─ main.py                     # App entrypoint (starts FastAPI)
 └─ app/
-   ├─ TaskSchemes.py           # Pydantic schemas (request/response models)
+   ├─ schemas.py           # Pydantic schemas (request/response models)
    ├─ routers/
    │  └─ tasks.py              # HTTP routes/endpoints for /tasks
    ├─ crud/
@@ -47,7 +47,7 @@ Design rationale:
 - routers/: HTTP layer (FastAPI endpoints)
 - crud/: application logic layer (calls storage)
 - storage/: data access layer (currently in‑memory; will be swapped for DB)
-- TaskSchemes.py: Pydantic models used by routers/crud/storage
+- schemas.py: Pydantic models used by routers/crud/storage
 
 ---
 
