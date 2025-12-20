@@ -23,6 +23,8 @@ class TaskUpdate(TaskBase):
 
 class TaskOut(TaskBase):
     id: int
+    title: str
+    description: Optional[str] = None
+    status: Status
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-    model_config = ConfigDict(from_attributes=True)
