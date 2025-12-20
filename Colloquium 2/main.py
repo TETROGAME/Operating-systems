@@ -7,6 +7,10 @@ app = FastAPI(
     version="0.1.0"
 )
 
+@app.get("/", tags=["Health Check"], summary="Health check")
+def root():
+    return {"message": "OK", "service": "todo-api", "version": "0.1.0"}
+
 app.include_router(tasks_router)
 
 if __name__ == '__main__':
