@@ -2,7 +2,7 @@ from typing import List
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
-from app.schemas import TaskCreate, TaskUpdate, TaskOut
+from app.models.task_models import TaskCreate, TaskUpdate, TaskOut
 from app.storage.models import Task as TaskModel
 
 def list_tasks(db: Session) -> List[TaskOut]:
