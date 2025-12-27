@@ -1,10 +1,9 @@
-import os
 from typing import Generator
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase, Session
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+psycopg2://todo:todo@localhost:5432/todo")
+from app.core.config import DATABASE_URL
 
 engine = create_engine(DATABASE_URL, echo=False, future=True)
 
