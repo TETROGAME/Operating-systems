@@ -2,7 +2,7 @@ from typing import List
 from fastapi import APIRouter, status, Depends
 from sqlalchemy.orm import Session
 
-from app.schemas import TaskCreate, TaskUpdate, TaskOut
+from app.models.task_models import TaskCreate, TaskUpdate, TaskOut
 from app.crud.tasks import (
     list_tasks,
     create_task,
