@@ -1,7 +1,9 @@
+from datetime import datetime
 from enum import Enum
 from typing import Optional
-from datetime import datetime
+
 from pydantic import BaseModel, Field, ConfigDict
+
 
 class Status(str, Enum):
     todo = "todo"
@@ -16,15 +18,14 @@ class TaskBase(BaseModel):
 class TaskCreate(TaskBase):
     pass
 
-class TaskUpdate(TaskBase):
+class TaskUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     description: Optional[str] = None
     status: Optional[Status] = None
 
 class TaskOut(TaskBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
-    title: str
-    description: Optional[str] = None
-    status: Status
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
