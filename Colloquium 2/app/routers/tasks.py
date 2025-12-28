@@ -1,41 +1,67 @@
 from typing import List
-from fastapi import APIRouter, status, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.models.task_models import TaskCreate, TaskUpdate, TaskOut
-from app.crud.tasks import (
-    list_tasks,
-    create_task,
-    get_task,
-    put_task,
-    patch_task,
-    delete_task,
-)
-from app.storage.db import get_db
+from app.core.db import get_db
+from app.models.task import Task, Status as SAStatus
+from app.schemas.task import TaskCreate, TaskUpdate, TaskOut
+from app.security.deps import get_current_user_id
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
-@router.get("", response_model=List[TaskOut], summary="Get all tasks")
-def list_tasks_endpoint(db: Session = Depends(get_db)):
-    return list_tasks(db)
+@router.get("", response_model=List[TaskOut])
+def list_tasks(db: Session = Depends(get_db), user_id: int = Depends(get_current_user_id)):
+    rows = db.query(Task).filter(Task.user_id == user_id).order_by(Task.id.asc()).all()
+    return [TaskOut.model_validate(r) for r in rows]
 
-@router.post("", response_model=TaskOut, status_code=status.HTTP_201_CREATED, summary="Create new task")
-def create_task_endpoint(payload: TaskCreate, db: Session = Depends(get_db)):
-    return create_task(db, payload)
+@router.post("", response_model=TaskOut, status_code=status.HTTP_201_CREATED)
+def create_task(data: TaskCreate, db: Session = Depends(get_db), user_id: int = Depends(get_current_user_id)):
+    row = Task(title=data.title, description=data.description, status=SAStatus(data.status.value), user_id=user_id)
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return TaskOut.model_validate(row)
 
-@router.get("/{task_id}", response_model=TaskOut, summary="Get task via ID")
-def get_task_endpoint(task_id: int, db: Session = Depends(get_db)):
-    return get_task(db, task_id)
+@router.get("/{task_id}", response_model=TaskOut)
+def get_task(task_id: int, db: Session = Depends(get_db), user_id: int = Depends(get_current_user_id)):
+    row = db.query(Task).filter(Task.id == task_id, Task.user_id == user_id).first()
+    if not row:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    return TaskOut.model_validate(row)
 
-@router.put("/{task_id}", response_model=TaskOut, summary="Update whole task via ID")
-def put_task_endpoint(task_id: int, payload: TaskCreate, db: Session = Depends(get_db)):
-    return put_task(db, task_id, payload)
+@router.put("/{task_id}", response_model=TaskOut)
+def put_task(task_id: int, data: TaskCreate, db: Session = Depends(get_db), user_id: int = Depends(get_current_user_id)):
+    row = db.query(Task).filter(Task.id == task_id, Task.user_id == user_id).first()
+    if not row:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    row.title = data.title
+    row.description = data.description
+    row.status = SAStatus(data.status.value)
+    db.commit()
+    db.refresh(row)
+    return TaskOut.model_validate(row)
 
-@router.patch("/{task_id}", response_model=TaskOut, summary="Update task partially via ID")
-def patch_task_endpoint(task_id: int, payload: TaskUpdate, db: Session = Depends(get_db)):
-    return patch_task(db, task_id, payload)
+@router.patch("/{task_id}", response_model=TaskOut)
+def patch_task(task_id: int, data: TaskUpdate, db: Session = Depends(get_db), user_id: int = Depends(get_current_user_id)):
+    row = db.query(Task).filter(Task.id == task_id, Task.user_id == user_id).first()
+    if not row:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    payload = data.model_dump(exclude_unset=True)
+    if "title" in payload:
+        row.title = payload["title"]
+    if "description" in payload:
+        row.description = payload["description"]
+    if "status" in payload and payload["status"] is not None:
+        row.status = SAStatus(payload["status"].value)
+    db.commit()
+    db.refresh(row)
+    return TaskOut.model_validate(row)
 
-@router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete task via ID")
-def delete_task_endpoint(task_id: int, db: Session = Depends(get_db)):
-    delete_task(db, task_id)
-    return
+@router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_task(task_id: int, db: Session = Depends(get_db), user_id: int = Depends(get_current_user_id)):
+    row = db.query(Task).filter(Task.id == task_id, Task.user_id == user_id).first()
+    if not row:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    db.delete(row)
+    db.commit()
+    return None
