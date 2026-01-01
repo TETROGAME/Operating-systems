@@ -1,11 +1,83 @@
-# Test your FastAPI endpoints
-
-GET http://127.0.0.1:8000/
-Accept: application/json
-
-###
-
-GET http://127.0.0.1:8000/hello/User
-Accept: application/json
+@host = http://127.0.0.1:8000
+@username = alice
+@password = Passw0rd!
+@token = REPLACE_WITH_JWT
+@task_id = REPLACE_WITH_TASK_ID
 
 ###
+# Register a new user
+POST {{host}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+###
+# Login to get JWT
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+###
+# Get current user (requires token)
+GET {{host}}/auth/me
+Authorization: Bearer {{token}}
+
+###
+# Create a task
+POST {{host}}/tasks
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "Buy milk",
+  "description": "3.2% fat",
+  "status": "todo"
+}
+
+###
+# List tasks
+GET {{host}}/tasks
+Authorization: Bearer {{token}}
+
+###
+# Get task by id
+GET {{host}}/tasks/{{task_id}}
+Authorization: Bearer {{token}}
+
+###
+# Replace task
+PUT {{host}}/tasks/{{task_id}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "Buy milk and bread",
+  "description": "whole grain",
+  "status": "in_progress"
+}
+
+###
+# Partial update
+PATCH {{host}}/tasks/{{task_id}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "status": "done"
+}
+
+###
+# Delete task
+DELETE {{host}}/tasks/{{task_id}}
+Authorization: Bearer {{token}}
+
+###
+# Unauthorized access
+GET {{host}}/tasks
