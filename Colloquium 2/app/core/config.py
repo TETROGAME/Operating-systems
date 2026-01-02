@@ -17,5 +17,5 @@ CACHE_TASK_TTL = int(os.getenv("CACHE_TASK_TTL", "300"))
 
 RQ_REDIS_URL = os.getenv("RQ_REDIS_URL", "redis://localhost:6379/3")
 
-if not JWT_SECRET_KEY or JWT_SECRET_KEY in ("CHANGE_ME", "change_me", "secret", "TEST_SECRET_KEY"):
-    raise RuntimeError("JWT_SECRET_KEY is not set or too weak. Put a strong value in .env or environment.")
+if not JWT_SECRET_KEY or JWT_SECRET_KEY == "TEST_SECRET_KEY":
+    raise RuntimeError("JWT_SECRET_KEY is not set or too weak. Put a strong value in .env.example or environment.")

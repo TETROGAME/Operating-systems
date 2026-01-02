@@ -11,13 +11,26 @@ from app.security.deps import get_current_user
 router = APIRouter(prefix="/auth", tags=["auth"])
 logger = logging.getLogger(__name__)
 
-@router.post("/register")
+@router.post("/register_user")
 def register(payload: RegisterInput, db: Session = Depends(get_db)):
     existing = db.query(User).filter(User.username == payload.username).first()
     if existing:
         logger.warning("register: user exists", extra={"username": payload.username})
         raise HTTPException(status_code=400, detail="User already exists")
-    user = User(username=payload.username, hashed_password=hash_password(payload.password), disabled=False)
+    user = User(username=payload.username, hashed_password=hash_password(payload.password), disabled=False, role="user")
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    logger.info("register: user created", extra={"user_id": user.id, "username": user.username})
+    return {"id": user.id, "username": user.username}
+
+@router.post("/register_admin")
+def register(payload: RegisterInput, db: Session = Depends(get_db)):
+    existing = db.query(User).filter(User.username == payload.username).first()
+    if existing:
+        logger.warning("register: user exists", extra={"username": payload.username})
+        raise HTTPException(status_code=400, detail="User already exists")
+    user = User(username=payload.username, hashed_password=hash_password(payload.password), disabled=False, role="admin")
     db.add(user)
     db.commit()
     db.refresh(user)
@@ -52,4 +65,4 @@ def login(payload: LoginInput, db: Session = Depends(get_db)):
 @router.get("/me")
 def me(current_user: User = Depends(get_current_user)):
     logger.info("me requested", extra={"user_id": current_user.id, "username": current_user.username})
-    return {"id": current_user.id, "username": current_user.username, "disabled": current_user.disabled}
+    return {"id": current_user.id, "username": current_user.username, "disabled": current_user.disabled, "role": current_user.role}
