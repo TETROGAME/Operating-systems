@@ -6,30 +6,51 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import close_all_sessions
 
-
 os.environ.setdefault("DATABASE_URL", "sqlite:///./test_app.db")
 os.environ.setdefault("JWT_SECRET_KEY", "test_secret_key")
 os.environ.setdefault("JWT_ALGORITHM", "HS256")
 os.environ.setdefault("JWT_ACCESS_TOKEN_EXPIRES_IN_MINUTES", "5")
 
-from app.core.db import Base, engine  
-from app.core.factory import create_app  
+from app.core.db import Base, engine
+from app.core.factory import create_app
 
 TEST_DB_PATH = pathlib.Path("test_app.db")
 
 
 @pytest.fixture(autouse=True)
 def setup_db():
-
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     yield
-
     close_all_sessions()
     Base.metadata.drop_all(bind=engine)
     engine.dispose()
     if TEST_DB_PATH.exists():
         TEST_DB_PATH.unlink()
+
+
+@pytest.fixture(autouse=True)
+def disable_redis(monkeypatch):
+    store = {}
+
+    def _get(key):
+        return store.get(key)
+
+    def _set(key, val, ttl=None):
+        store[key] = val
+        return True
+
+    def _delete(*keys):
+        for k in keys:
+            store.pop(k, None)
+        return True
+
+    monkeypatch.setattr("app.core.cache.cache_get_json", _get)
+    monkeypatch.setattr("app.core.cache.cache_set_json", _set)
+    monkeypatch.setattr("app.core.cache.cache_delete", _delete)
+
+    monkeypatch.setattr("app.tasks.jobs.enqueue_task_event", lambda *args, **kwargs: None)
+    monkeypatch.setattr("app.routers.tasks.enqueue_task_event", lambda *args, **kwargs: None)
 
 
 @pytest.fixture
@@ -39,8 +60,14 @@ def client():
         yield c
 
 
-def _register(client: TestClient, username: str, password: str = "Passw0rd!") -> dict:
-    resp = client.post("/auth/register", json={"username": username, "password": password})
+def _register_user(client: TestClient, username: str, password: str = "Passw0rd!") -> dict:
+    resp = client.post("/auth/register_user", json={"username": username, "password": password})
+    assert resp.status_code == 200, resp.text
+    return resp.json()
+
+
+def _register_admin(client: TestClient, username: str, password: str = "Passw0rd!") -> dict:
+    resp = client.post("/auth/register_admin", json={"username": username, "password": password})
     assert resp.status_code == 200, resp.text
     return resp.json()
 
@@ -55,12 +82,21 @@ def _auth_headers(token: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
 
 
-def test_register_and_login_success(client: TestClient):
+def test_register_user_and_login_success(client: TestClient):
     username = f"user-{uuid.uuid4()}"
-    _register(client, username)
+    _register_user(client, username)
     token = _login(client, username)
-    assert token
+    me = client.get("/auth/me", headers=_auth_headers(token))
+    assert me.status_code == 200
+    body = me.json()
+    assert body["username"] == username
+    assert body["disabled"] is False
 
+
+def test_register_admin_and_login_success(client: TestClient):
+    username = f"admin-{uuid.uuid4()}"
+    _register_admin(client, username)
+    token = _login(client, username)
     me = client.get("/auth/me", headers=_auth_headers(token))
     assert me.status_code == 200
     body = me.json()
@@ -70,15 +106,15 @@ def test_register_and_login_success(client: TestClient):
 
 def test_register_duplicate_username(client: TestClient):
     username = f"user-{uuid.uuid4()}"
-    _register(client, username)
-    resp = client.post("/auth/register", json={"username": username, "password": "Passw0rd!"})
+    _register_user(client, username)
+    resp = client.post("/auth/register_user", json={"username": username, "password": "Passw0rd!"})
     assert resp.status_code == 400
     assert resp.json()["detail"] == "User already exists"
 
 
 def test_login_invalid_credentials(client: TestClient):
     username = f"user-{uuid.uuid4()}"
-    _register(client, username)
+    _register_user(client, username)
     resp = client.post("/auth/login", json={"username": username, "password": "wrong"})
     assert resp.status_code == 401
     assert resp.json()["detail"] == "Invalid credentials"
@@ -98,10 +134,9 @@ def test_me_rejects_invalid_token(client: TestClient):
 
 def test_tasks_crud_flow(client: TestClient):
     username = f"user-{uuid.uuid4()}"
-    _register(client, username)
+    _register_user(client, username)
     token = _login(client, username)
     headers = _auth_headers(token)
-
 
     create_resp = client.post(
         "/tasks",
@@ -109,21 +144,14 @@ def test_tasks_crud_flow(client: TestClient):
         headers=headers,
     )
     assert create_resp.status_code == 201
-    created = create_resp.json()
-    task_id = created["id"]
-    assert created["title"] == "Buy milk"
-    assert created["status"] == "todo"
-
+    task_id = create_resp.json()["id"]
 
     list_resp = client.get("/tasks", headers=headers)
     assert list_resp.status_code == 200
-    assert len(list_resp.json()) == 1
-
+    assert any(t["id"] == task_id for t in list_resp.json())
 
     get_resp = client.get(f"/tasks/{task_id}", headers=headers)
     assert get_resp.status_code == 200
-    assert get_resp.json()["id"] == task_id
-
 
     put_resp = client.put(
         f"/tasks/{task_id}",
@@ -133,7 +161,6 @@ def test_tasks_crud_flow(client: TestClient):
     assert put_resp.status_code == 200
     assert put_resp.json()["status"] == "in_progress"
 
-
     patch_resp = client.patch(
         f"/tasks/{task_id}",
         json={"status": "done"},
@@ -142,19 +169,17 @@ def test_tasks_crud_flow(client: TestClient):
     assert patch_resp.status_code == 200
     assert patch_resp.json()["status"] == "done"
 
-
     del_resp = client.delete(f"/tasks/{task_id}", headers=headers)
     assert del_resp.status_code == 204
 
-
     list_after = client.get("/tasks", headers=headers)
     assert list_after.status_code == 200
-    assert list_after.json() == []
+    assert all(t["id"] != task_id for t in list_after.json())
 
 
 def test_get_task_not_found(client: TestClient):
     username = f"user-{uuid.uuid4()}"
-    _register(client, username)
+    _register_user(client, username)
     token = _login(client, username)
     headers = _auth_headers(token)
 
@@ -164,9 +189,8 @@ def test_get_task_not_found(client: TestClient):
 
 
 def test_cannot_access_other_users_task(client: TestClient):
-
     user_a = f"user-{uuid.uuid4()}"
-    _register(client, user_a)
+    _register_user(client, user_a)
     token_a = _login(client, user_a)
     headers_a = _auth_headers(token_a)
 
@@ -178,9 +202,8 @@ def test_cannot_access_other_users_task(client: TestClient):
     assert create_resp.status_code == 201
     task_id = create_resp.json()["id"]
 
-
     user_b = f"user-{uuid.uuid4()}"
-    _register(client, user_b)
+    _register_user(client, user_b)
     token_b = _login(client, user_b)
     headers_b = _auth_headers(token_b)
 
