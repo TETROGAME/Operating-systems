@@ -24,7 +24,7 @@ venv/
 docker-*.log
 
 # env
-.env.example
+.env
 
 # OS
 .DS_Store
