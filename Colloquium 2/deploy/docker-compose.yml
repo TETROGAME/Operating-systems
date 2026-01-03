@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: todo-app
+    env_file:
+      - ../.env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../data:/app/data
+      - ../logs:/app/logs
+    depends_on:
+      - redis
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+  rq-worker:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: todo-rq-worker
+    env_file:
+      - ../.env
+    depends_on:
+      - redis
+    volumes:
+      - ../data:/app/data
+      - ../logs:/app/logs
+    command: ["rq", "worker", "-u", "${RQ_REDIS_URL}", "default"]
+
+  redis:
+    image: redis:7-alpine
+    container_name: todo-redis
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:
