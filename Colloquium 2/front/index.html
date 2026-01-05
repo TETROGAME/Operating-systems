@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>To-Do list</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>To-Do</h1>
+    <div id="message" class="message"></div>
+
+    <div id="auth-card" class="card">
+      <h2 id="auth-title">Вход</h2>
+      <label>Username</label>
+      <input id="username" type="text" autocomplete="username">
+      <label>Password</label>
+      <input id="password" type="password" autocomplete="current-password">
+      <div class="actions">
+        <button id="auth-submit">Войти</button>
+        <button id="toggle-mode" class="link">Создать аккаунт</button>
+      </div>
+      <div class="actions">
+        <button id="register-admin" class="link">Зарегистрировать админа</button>
+      </div>
+    </div>
+
+    <div id="app-card" class="card hidden">
+      <div class="header">
+        <div id="user-info"></div>
+        <button id="logout">Выйти</button>
+      </div>
+
+      <div class="card">
+        <h3>Новая задача</h3>
+        <label>Title</label>
+        <input id="task-title" type="text" maxlength="200">
+        <label>Description</label>
+        <input id="task-desc" type="text">
+        <label>Status</label>
+        <select id="task-status">
+          <option value="todo">todo</option>
+          <option value="in_progress">in_progress</option>
+          <option value="done">done</option>
+        </select>
+        <button id="create-task">Создать</button>
+      </div>
+
+      <div class="card">
+        <h3>Мои задачи</h3>
+        <ul id="tasks"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script src="./main.js"></script>
+</body>
+</html>
