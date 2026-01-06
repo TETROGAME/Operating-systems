@@ -1,208 +1,139 @@
 # To-Do List API
 
-A simple REST API for managing tasks (To‑Do List) built with Python and FastAPI.
-
-This project currently uses in‑session (in‑memory) storage — data exists only while the app process is running. It’s ideal for learning and can be later replaced with a database (e.g., PostgreSQL).
+A JWT-protected REST API for managing tasks built with FastAPI, SQLAlchemy, and Redis-backed background jobs. Includes a lightweight frontend, metrics, and Dockerized deployment.
 
 ---
 
 ## Features
+- Auth: user/admin registration, JWT login (AuthX), protected endpoints.
+- Tasks: per-user CRUD (create/list/get/update/patch/delete) with status (`todo`, `in_progress`, `done`).
+- Data: SQLAlchemy ORM (SQLite by default; can switch to Postgres).
+- Caching: Redis cache for task lists/items.
+- Background jobs: RQ queue (Redis) for task events.
+- Observability: Prometheus metrics (`/metrics`), structured logging to rotating file.
+- API docs: Swagger UI at `/docs`, ReDoc at `/redoc`.
+- Frontend: simple static UI (`front/`) for auth and tasks.
+- Health check: `/health`.
 
-- CRUD endpoints for tasks:
-  - Create, Read (list and by id), Update (PUT/PATCH), Delete
-- JSON request/response format
-- Proper HTTP status codes (200, 201, 204, 404, 422)
-- Clean code structure with routers, schemas, and storage layers
-- In‑memory storage (resets on restart)
+---
 
-Used technologies:
-- Python (3.12) with FastAPI
-- Uvicorn (ASGI web server)
-
-Planned:
-- PostgreSQL with SQLAlchemy (future)
-- Docker for deployment (future)
-- Logging, metrics, auth/rate limiting (future)
+## Tech Stack
+- **Python 3.11+**, **FastAPI**, **Uvicorn**
+- **Pydantic v2**, **SQLAlchemy 2**
+- **AuthX** + **passlib[bcrypt]** for JWT auth & password hashing
+- **Redis** for cache + **RQ** for background jobs
+- **Prometheus client** for metrics
+- **Nginx** as reverse proxy (rate limiting, fanout)
+- **Docker / docker-compose** for multi-service setup
+- Testing: **pytest**, **requests**, **fastapi.testclient**
 
 ---
 
 ## Project Structure
-
-Inside the Colloquium 2/ directory:
-
 ```
 Colloquium 2/
-├─ main.py                     # App entrypoint (starts FastAPI)
-└─ app/
-   ├─ schemas.py           # Pydantic schemas (request/response models)
-   ├─ routers/
-   │  └─ tasks.py              # HTTP routes/endpoints for /tasks
-   ├─ crud/
-   │  └─ tasks.py              # Task operations (business layer)
-   └─ storage/
-      └─ memory.py             # In‑memory storage adapter
+├─ app/
+│  ├─ core/              # config, DB, logging, metrics, OpenAPI, Redis queue
+│  ├─ models/            # ORM models (User, Task)
+│  ├─ routers/           # FastAPI routers (auth, tasks, health)
+│  ├─ schemas/           # Pydantic schemas (auth, task)
+│  ├─ security/          # Auth helpers (AuthX setup, deps)
+│  └─ tasks/             # Background jobs (RQ handlers)
+├─ front/                # Static frontend (index.html, main.js, style.css)
+├─ deploy/               # Dockerfile, docker-compose, nginx.conf
+├─ tests/                # Pytest suites + HTTP scratch file
+├─ main.py               # App entrypoint
+├─ requirements.txt
+└─ README.md
 ```
 
-Design rationale:
-- routers/: HTTP layer (FastAPI endpoints)
-- crud/: application logic layer (calls storage)
-- storage/: data access layer (currently in‑memory; will be swapped for DB)
-- schemas.py: Pydantic models used by routers/crud/storage
-
 ---
 
-## Data Model
+## Quickstart (Local)
 
-Statuses: `"todo" | "in_progress" | "done"`
+1) **Install deps**
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 
-- TaskCreate (request for POST/PUT):
-  - title: string (required, 1–200 chars)
-  - description: string (optional)
-  - status: one of the statuses above (default: `todo`)
+2) **Set environment** (create `.env` or export vars):
+```
+DATABASE_URL=sqlite:///./data/app.db
+JWT_SECRET_KEY=CHANGE_ME
+JWT_ALGORITHM=HS256
+JWT_ACCESS_TOKEN_EXPIRES_IN_MINUTES=15
+REDIS_URL=redis://localhost:6379/0
+RQ_REDIS_URL=redis://localhost:6379/3
+CACHE_TASK_TTL=300
+```
+> Note: app will raise if `JWT_SECRET_KEY` is weak/missing.
 
-- TaskUpdate (request for PATCH):
-  - title: string (optional)
-  - description: string (optional)
-  - status: status (optional)
-
-- TaskOut (response):
-  - id: integer
-  - title: string
-  - description: string or null
-  - status: status
-  - created_at: datetime or null (not set in memory storage)
-  - updated_at: datetime or null (not set in memory storage)
-
-Note: With in‑memory storage, `created_at` and `updated_at` are currently not populated and will be `null`.
-
----
-
-## API Reference
-
-Base URL (local dev): `http://localhost:8000`
-
-- GET `/tasks`
-  - Returns a list of tasks.
-  - 200 OK
-
-- POST `/tasks`
-  - Creates a new task.
-  - Body (JSON):
-    ```json
-    {
-      "title": "Buy groceries",
-      "description": "Milk, bread, bananas",
-      "status": "todo"
-    }
-    ```
-  - 201 Created
-  - Response (JSON):
-    ```json
-    {
-      "id": 1,
-      "title": "Buy groceries",
-      "description": "Milk, bread, bananas",
-      "status": "todo",
-      "created_at": null,
-      "updated_at": null
-    }
-    ```
-
-- GET `/tasks/{id}`
-  - Returns a task by ID.
-  - 200 OK or 404 Not Found
-
-- PUT `/tasks/{id}`
-  - Replaces the entire task (send all fields like POST).
-  - 200 OK or 404 Not Found
-
-- PATCH `/tasks/{id}`
-  - Partially updates a task (send only changed fields).
-  - Example:
-    ```json
-    { "status": "done" }
-    ```
-  - 200 OK or 404 Not Found
-
-- DELETE `/tasks/{id}`
-  - Deletes a task by ID.
-  - 204 No Content or 404 Not Found
-
-Validation errors (e.g., wrong types or status) return 422 Unprocessable Entity.
-
----
-
-## Running the app
-
-From the Colloquium 2/ directory:
-
-- Using uvicorn:
+3) **Run API**
 ```bash
 uvicorn main:app --reload
 ```
+- Swagger UI: http://localhost:8000/docs  
+- Metrics: http://localhost:8000/metrics  
+- Health: http://localhost:8000/health
 
-- Or via Python (starts uvicorn from code):
-```bash
-python main.py
-```
-
-Open the interactive docs:
-- Swagger UI: http://localhost:8000/docs
+4) **Run frontend**
+Serve `front/` statically (e.g., `python -m http.server` inside `front/`) and point it to the API (`http://localhost:8000` by default, configurable via `localStorage.api_base`).
 
 ---
 
-## Usage Examples (curl)
+## Quickstart (Docker Compose)
 
-Create a task:
+From the repo root (note `deploy/` paths in compose):
+
 ```bash
-curl -X POST http://localhost:8000/tasks \
-  -H "Content-Type: application/json" \
-  -d '{"title":"Buy milk","description":"3.2% fat","status":"todo"}'
+cd deploy
+docker compose up --build
 ```
 
-List tasks:
-```bash
-curl http://localhost:8000/tasks
-```
+Services:
+- `app1`, `app2`: FastAPI app instances (uvicorn)
+- `rq-worker`: RQ worker for background jobs
+- `redis`: Redis backend
+- `nginx`: reverse proxy on host port **8000** (rate limiting enabled)
 
-Get by ID:
-```bash
-curl http://localhost:8000/tasks/1
-```
-
-Patch (partial update):
-```bash
-curl -X PATCH http://localhost:8000/tasks/1 \
-  -H "Content-Type: application/json" \
-  -d '{"status":"done"}'
-```
-
-Put (replace):
-```bash
-curl -X PUT http://localhost:8000/tasks/1 \
-  -H "Content-Type: application/json" \
-  -d '{"title":"Buy milk and bread","description":"Grab change","status":"in_progress"}'
-```
-
-Delete:
-```bash
-curl -X DELETE http://localhost:8000/tasks/1
-```
+Env is loaded from `../.env`. Volumes `../data` and `../logs` are mounted for persistence.
 
 ---
 
+## Testing
 
-## Roadmap
+Local tests (uses SQLite and patched Redis):
+```bash
+pytest
+```
 
-- Storage:
-  - Replace in‑memory with PostgreSQL
-  - Add created_at/updated_at timestamps
-- Observability:
-  - Request logging, error logging 
-- Platform:
-  - API gateway/rate limiting (optional)
-- Security:
-  - JWT Auth 
-  - Validation improvements
+Dockerized API smoke tests (expects running service; set `API_BASE_URL`/`API_HEALTH_PATH` if needed):
+```bash
+pytest tests/test_api_docker.py
+```
 
+HTTP scratch requests:
+```
+tests/test_main.http
+```
+(use an HTTP client like VS Code REST Client; replace tokens/placeholders).
 
+---
+
+## API Overview
+
+- `POST /auth/register_user` / `POST /auth/register_admin`
+- `POST /auth/login`
+- `GET /auth/me`
+- `GET /tasks`
+- `POST /tasks`
+- `GET /tasks/{id}`
+- `PUT /tasks/{id}`
+- `PATCH /tasks/{id}`
+- `DELETE /tasks/{id}`
+- `GET /health`
+- `GET /metrics` (Prometheus)
+
+All `/tasks` endpoints require `Authorization: Bearer <JWT>`.
